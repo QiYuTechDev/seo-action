@@ -1,19 +1,19 @@
-import * as core from '@actions/core'
-import {wait} from './wait'
+import * as core from "@actions/core";
+import {downloadPackage} from "./dl";
+import {installPackage} from "./install";
+import {runSeo} from "./run";
 
-async function run(): Promise<void> {
-  try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
-  } catch (error) {
-    core.setFailed(error.message)
-  }
+function main(): void {
+    try {
+        const version: string = core.getInput("version");
+        core.info(`use seo version: ${version}`)
+        downloadPackage(version)
+        installPackage()
+        runSeo()
+    } catch (error: any) {
+        core.setFailed((error as Error).message);
+    }
 }
 
-run()
+main()
