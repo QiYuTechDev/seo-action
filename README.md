@@ -7,15 +7,13 @@ the [Hello World JavaScript Action](https://github.com/actions/hello-world-javas
 
 ## Code in Main
 
-> First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
-
-Install the dependencies
+安装依赖
 
 ```bash
 $ npm install
 ```
 
-Build the typescript and package it for distribution
+编译 & 打包
 
 ```bash
 $ npm run build && npm run package
