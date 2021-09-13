@@ -1,4 +1,5 @@
 name: 'build-test'
+
 on: # rebuild any PRs and main branch changes
   pull_request:
   push:
@@ -15,6 +16,7 @@ jobs:
           npm install
       - run: |
           npm run all
+
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
     steps:
