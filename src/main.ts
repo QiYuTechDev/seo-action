@@ -12,8 +12,8 @@ async function run(): Promise<void> {
 
     core.setOutput("time", new Date().toTimeString());
     core.info("action is done");
-  } catch (error) {
-    core.setFailed(error.message);
+  } catch (error: any) {
+    core.setFailed((error as Error).message);
   }
 }
 
