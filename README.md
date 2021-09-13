@@ -1,5 +1,7 @@
 # QiYuTech Demo Action
 
+[![build-test](https://github.com/QiYuTechDev/demo-action/actions/workflows/test.yml/badge.svg)](https://github.com/QiYuTechDev/demo-action/actions/workflows/test.yml)
+
 If you are new, there's also a simpler introduction. See
 the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
 
