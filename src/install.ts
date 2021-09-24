@@ -18,6 +18,7 @@ export function installPackage() {
             cliRun(file, ["-s"])
             break
         case 'linux':
+            cliRun("sudo", ["apt", "update"])
             cliRun("sudo", ["dpkg", "-i", file])
             cliRun("sudo", ["apt", "--fix-broken", "-y", "install"])
             break
