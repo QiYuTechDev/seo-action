@@ -23,7 +23,7 @@ export function installPackage() {
             cliRun("sudo", ["apt", "--fix-broken", "-y", "install"])
             break
         case  'darwin':
-            cliRun("unzip", [file])
+            cliRun("unzip", ["-qq", file])
             break
         default:
             core.setFailed(`${os.platform()} is not supported[only support linux[debian&ubuntu] & macOS, win32]`)
