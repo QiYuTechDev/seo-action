@@ -186,11 +186,12 @@ function installPackage() {
             (0, cli_1.cliRun)(file, ["-s"]);
             break;
         case 'linux':
+            (0, cli_1.cliRun)("sudo", ["apt", "update"]);
             (0, cli_1.cliRun)("sudo", ["dpkg", "-i", file]);
             (0, cli_1.cliRun)("sudo", ["apt", "--fix-broken", "-y", "install"]);
             break;
         case 'darwin':
-            (0, cli_1.cliRun)("unzip", [file]);
+            (0, cli_1.cliRun)("unzip", ["-qq", file]);
             break;
         default:
             core.setFailed(`${os_1.default.platform()} is not supported[only support linux[debian&ubuntu] & macOS, win32]`);
@@ -251,22 +252,54 @@ main();
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.runSeo = void 0;
 const os_1 = __importDefault(__nccwpck_require__(87));
+const core = __importStar(__nccwpck_require__(186));
 const cli_1 = __nccwpck_require__(504);
 function runLinux() {
-    (0, cli_1.cliRun)("/usr/lib/seo/seo", ["--help"]);
+    core.info("install mongodb");
+    (0, cli_1.cliRun)("xvfb-run", ["/usr/lib/seo/seo", "--no-sandbox", "--help"]);
 }
 function runMacOS() {
+    core.info("install mongodb");
+    (0, cli_1.cliRun)("brew", ["tap", "mongodb/brew"]);
+    (0, cli_1.cliRun)("brew", ["install", "mongodb-community@5.0"]);
+    core.info("start mongodb");
+    (0, cli_1.cliRun)("brew", ["services", "start", "mongodb-community"]);
+    core.info("start seo");
     (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--help"]);
 }
 function runWin32() {
+    core.info("debug info");
     (0, cli_1.cliRun)("whoami");
     (0, cli_1.cliRun)("ls", ["c:\\\\users\\\\runneradmin\\\\AppData\\\\Local\\\\seo"]);
+    core.info("install mongodb");
+    (0, cli_1.cliRun)("choco", ["install", "mongodb"]);
+    core.info("show all windows services");
+    core.info("start seo");
     (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"]);
 }
 function runSeo() {
