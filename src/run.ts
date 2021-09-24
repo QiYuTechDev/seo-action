@@ -18,10 +18,13 @@ function runMacOS() {
 }
 
 function runWin32() {
-    core.info("install mongodb")
-    cliRun("choco", ["install", "mongodb"])
+    core.info("debug info")
     cliRun("whoami")
     cliRun("ls", ["c:\\\\users\\\\runneradmin\\\\AppData\\\\Local\\\\seo"])
+    core.info("install mongodb")
+    cliRun("choco", ["install", "mongodb"])
+    core.info("show all windows services")
+    cliRun("Get-Service")
     core.info("start seo")
     cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"])
 }
