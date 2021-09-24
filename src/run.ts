@@ -2,7 +2,7 @@ import os from "os"
 import {cliRun} from "./cli";
 
 function runLinux() {
-    cliRun("/usr/lib/seo/seo", ["--help"])
+    cliRun("Xvfb", ["/usr/lib/seo/seo", "--help"])
 }
 
 function runMacOS() {
