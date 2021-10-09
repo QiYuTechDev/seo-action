@@ -13,6 +13,18 @@ inputs:
   url:
     required: true
     description: "The url you want to scrapy/test"
+  snapshot:
+    required: true
+    description: "capture the snapshot for url"
+    default: false
+  pdf:
+    required: true
+    description: "capture the pdf for url"
+    default: false
+  timeout:
+    required: true
+    description: "timeout(in second) for operation"
+    default: 30
 runs:
   using: "node12"
   main: "dist/index.js"
