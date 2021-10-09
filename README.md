@@ -5,10 +5,6 @@
 ## GitHub Action 使用
 
 ```yaml
-- name: Start MongoDB
-  uses: supercharge/mongodb-github-action@1.6.0
-  with:
-    mongodb-version: "4.4"
 - uses: QiYuTechDev/seo-action
   with:
     version: "0.6.4"
