@@ -6,11 +6,14 @@ import {runSeo} from "./run";
 
 function main(): void {
     try {
-        const version: string = core.getInput("version");
+        const version: string = core.getInput("version")
+        const url: string = core.getInput("url")
+        const code: string = core.getInput("code")
         core.info(`use seo version: ${version}`)
         downloadPackage(version)
         installPackage()
         runSeo()
+        core.info(`try to visit url: ${url}`)
     } catch (error: any) {
         core.setFailed((error as Error).message);
     }

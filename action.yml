@@ -6,6 +6,13 @@ inputs:
     required: true
     description: "seo version"
     default: "0.6.4"
+  code:
+    required: true
+    description: "the code(js file) you want to run in url"
+    default: 'code.js'
+  url:
+    required: true
+    description: "The url you want to scrapy/test"
 runs:
   using: "node12"
   main: "dist/index.js"

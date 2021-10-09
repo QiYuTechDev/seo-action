@@ -19,3 +19,4 @@ jobs:
       - uses: ./
         with:
           version: "0.6.4"
+          url: "https://news.ycombinator.com/"
