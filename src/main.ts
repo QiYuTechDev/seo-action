@@ -9,10 +9,6 @@ function main(): void {
         const version: string = core.getInput("version")
         const url: string = core.getInput("url")
         const code: string = core.getInput("code")
-        const snapshot = core.getBooleanInput("snapshot")
-        const pdf = core.getBooleanInput("pdf")
-        const timeout = Number(core.getInput("timeout"))
-
         core.info(`use seo version: ${version}`)
         downloadPackage(version)
         installPackage()
