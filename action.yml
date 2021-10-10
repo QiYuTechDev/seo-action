@@ -33,6 +33,10 @@ inputs:
     required: true
     description: "timeout(in second) for operation"
     default: 30
+  debug:
+    required: true
+    description: "debug the action"
+    default: false
 runs:
   using: "node12"
   main: "dist/index.js"
