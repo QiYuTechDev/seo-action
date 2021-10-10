@@ -4,7 +4,7 @@ import {cliRun} from "./cli";
 
 function runLinux() {
     core.info("install mongodb")
-    cliRun("xvfb-run", ["/usr/lib/seo/seo", "--no-sandbox", "--help"])
+    cliRun("xpra", ["start", "--start-child=\"seo --help\"", "--exit-with-children", "--daemon=off"])
 }
 
 function runMacOS() {
