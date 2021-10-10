@@ -21,6 +21,14 @@ inputs:
     required: true
     description: "capture the pdf for url"
     default: false
+  video:
+    required: true
+    description: "capture video for url"
+    default: false
+  rrweb:
+    required: true
+    description: "capture rrweb for url"
+    default: false
   timeout:
     required: true
     description: "timeout(in second) for operation"
