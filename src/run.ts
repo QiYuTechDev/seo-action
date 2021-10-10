@@ -4,6 +4,7 @@ import {cliRun} from "./cli";
 
 function runLinux() {
     core.info("install mongodb")
+    cliRun("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019 --test-mongo-server\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"])
     cliRun("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"])
 }
 
@@ -14,7 +15,7 @@ function runMacOS() {
     core.info("start mongodb")
     cliRun("brew", ["services", "start", "mongodb-community"])
     core.info("start seo")
-    cliRun("./seo.app/Contents/MacOS/seo", ["--help"])
+    cliRun("./seo.app/Contents/MacOS/seo", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"])
     cliRun("./seo.app/Contents/MacOS/seo", ["--mongo-url=mongodb://127.0.0.1:27019"], false)
 }
 
@@ -26,7 +27,7 @@ function runWin32() {
     cliRun("choco", ["install", "mongodb"])
     core.info("show all windows services")
     core.info("start seo")
-    cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"])
+    cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"])
     cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--mongo-url=mongodb://127.0.0.1:27019"], false)
 }
 

@@ -14,7 +14,7 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true) {
     if (!sync) {
         process.nextTick(() => {
             const ret = child_process.spawn(cli, args || [], {detached: true})
-            ret.disconnect()
+            ret.unref()
         })
         return
     }
