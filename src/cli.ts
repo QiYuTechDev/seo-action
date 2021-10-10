@@ -13,6 +13,17 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true) {
     core.info(`${cli} ${(args || []).join(" ")}`)
     if (!sync) {
         const ret = child_process.spawn(cli, args || [])
+        ret.stdout.on('data', (data) => {
+            if (debug) {
+                core.info(`${cli} stdout: ${data}`)
+            }
+        })
+        ret.stderr.on('data', (data) => {
+            if (debug) {
+                core.warning(`${cli} stderr: ${data}`)
+            }
+        })
+        return
     }
 
     let ret = child_process.spawnSync(cli, args || [])
