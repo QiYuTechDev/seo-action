@@ -12,7 +12,7 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true) {
 
     core.info(`${cli} ${(args || []).join(" ")}`)
     if (!sync) {
-        const ret = child_process.spawn(cli, args || [])
+        const ret = child_process.spawn(cli, args || [], {detached: true})
         ret.stdout.on('data', (data) => {
             if (debug) {
                 core.info(`${cli} stdout: ${data}`)

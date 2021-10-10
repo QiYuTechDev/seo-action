@@ -27,7 +27,7 @@ function runWin32() {
     core.info("show all windows services")
     core.info("start seo")
     cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"])
-    cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", [], false)
+    cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", null, false)
 }
 
 export function runSeo() {
