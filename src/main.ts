@@ -1,9 +1,11 @@
 import * as core from "@actions/core";
-
+import fetch from 'node-fetch'
 import {downloadPackage} from "./dl";
 import {installPackage} from "./install";
 import {runSeo} from "./run";
 import {runCode} from "./code";
+
+globalThis.fetch = fetch as any
 
 
 function main(): void {
