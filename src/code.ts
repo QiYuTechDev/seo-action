@@ -17,7 +17,7 @@ export async function runCode() {
     const code = fs.readFileSync(`${process.env['GITHUB_WORKSPACE']}/${code_file}`, {encoding: 'utf-8'})
 
     core.info(`try to visit url: ${url}`)
-    core.info(`js code\n: ${code}\n\n`)
+    core.info(`js code:\n${code}\n\n`)
 
     const args: RestCiArgs = {
         url: url,
