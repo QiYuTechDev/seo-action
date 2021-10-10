@@ -14,19 +14,7 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true) {
     if (!sync) {
         process.nextTick(() => {
             const ret = child_process.spawn(cli, args || [], {detached: true})
-            ret.stdout.on('data', (data) => {
-                if (debug) {
-                    core.info(`${cli} stdout: ${data}`)
-                }
-            })
-            ret.stderr.on('data', (data) => {
-                if (debug) {
-                    core.warning(`${cli} stderr: ${data}`)
-                }
-            })
-            ret.on('close', (code) => {
-                core.info(`${cli} exit code: ${code}`)
-            })
+            ret.disconnect()
         })
         return
     }

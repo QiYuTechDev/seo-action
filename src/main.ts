@@ -19,7 +19,7 @@ function main(): void {
         runSeo()
         setTimeout(async () => {
             await runCode()
-        })
+        }, 10 * 1000) // wait seo startup
     } catch (error: any) {
         core.setFailed((error as Error).message);
     }
