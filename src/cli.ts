@@ -12,7 +12,11 @@ export function cliRun(cli: string, args: string[] | null = null) {
     if (ret.status !== 0) {
         core.warning(`stdout: ${ret.stdout}`)
         core.error(`stderr: ${ret.stderr}`)
-        core.setFailed(`exec ${cli} failed`)
+        if (cli === "xpra") {
+            core.warning("xpra exec failed")
+        } else {
+            core.setFailed(`exec ${cli} failed`)
+        }
     } else {
         core.info(ret.stdout.toString())
         core.warning(ret.stderr.toString())
