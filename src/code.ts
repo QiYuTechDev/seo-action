@@ -1,6 +1,9 @@
-import {Ci} from "qiyu-seo"
 import * as core from "@actions/core";
+import {Ci, RestCiArgs} from "qiyu-seo"
 
+/**
+ * 运行 custom 代码
+ */
 export async function runCode() {
     const url: string = core.getInput("url")
     const code: string = core.getInput("code")
@@ -12,18 +15,17 @@ export async function runCode() {
 
     core.info(`try to visit url: ${url}`)
 
-    const resp = await Ci.do_post({
-        body: {
-            url: url,
-            fn_code: code,
-            timeout: timeout,
-            auto_close: true,
-            snapshot: snapshot,
-            pdf: pdf,
-            video: video,
-            rrweb: rrweb,
-        },
-        security: {bearer: 'seo'}
-    })
+    const args: RestCiArgs = {
+        url: url,
+        fn_code: code,
+        timeout: timeout,
+        auto_close: true,
+        snapshot: snapshot,
+        pdf: pdf,
+        video: video,
+        rrweb: rrweb,
+    }
+
+    const resp = await Ci.do_post({body: args, security: {bearer: 'seo'}})
     core.info(JSON.stringify(resp))
 }
