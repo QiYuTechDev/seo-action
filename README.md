@@ -7,7 +7,7 @@
 ```yaml
 - uses: QiYuTechDev/seo-action
   with:
-    version: "0.6.4"
+    version: "0.7.0"
     url: "https://news.ycombinator.com/"
 ```
 

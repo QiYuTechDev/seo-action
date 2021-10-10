@@ -5,7 +5,7 @@ inputs:
   version:
     required: true
     description: "seo version"
-    default: "0.6.4"
+    default: "0.7.0"
   code:
     required: true
     description: "the code(js file) you want to run in url"
