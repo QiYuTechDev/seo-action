@@ -1,3 +1,4 @@
+import fs from "fs";
 import * as core from "@actions/core";
 import {Ci, RestCiArgs} from "qiyu-seo"
 
@@ -6,14 +7,17 @@ import {Ci, RestCiArgs} from "qiyu-seo"
  */
 export async function runCode() {
     const url: string = core.getInput("url")
-    const code: string = core.getInput("code")
+    const code_file: string = core.getInput("code")
     const snapshot = core.getBooleanInput("snapshot")
     const pdf = core.getBooleanInput("pdf")
     const video = core.getBooleanInput("video")
     const rrweb = core.getBooleanInput("rrweb")
     const timeout = Number(core.getInput("timeout"))
 
+    const code = fs.readFileSync(`${process.env['GITHUB_WORKSPACE']}/${code_file}`, {encoding: 'utf-8'})
+
     core.info(`try to visit url: ${url}`)
+    core.info(`js code\n: ${code}\n\n`)
 
     const args: RestCiArgs = {
         url: url,
