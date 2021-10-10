@@ -1,0 +1,28 @@
+name: 'debug'
+
+on: # rebuild any PRs and main branch changes
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'releases/*'
+
+jobs:
+  build: # make sure build/ci work properly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          npm install
+      - run: |
+          npm run all
+      - run: |
+          wget https://github.com/QiYuTechDev/seo/releases/download/0.7.0/seo_amd64.deb
+      - run: |
+          sudo dpkg -i seo_amd64.deb
+      - run: |
+          sudo apt update && sudo apt install --fix-broken -y
+      - run: |
+          sudo apt install ffmpeg -y
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
