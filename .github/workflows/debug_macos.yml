@@ -1,0 +1,23 @@
+name: 'debug macos'
+
+on: # rebuild any PRs and main branch changes
+  push:
+    branches:
+      - debug
+
+jobs:
+  build: # make sure build/ci work properly
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          npm install
+      - run: |
+          npm run all
+      - run: |
+          wget https://github.com/QiYuTechDev/seo/releases/download/0.7.0/mac.zip
+      - run: |
+          brew tap mongodb/brew && brew install mongodb-community@5.0 && brew services start mongodb-community
+      - name: Setup tmate macOS session
+        uses: mxschmitt/action-tmate@v3
+
