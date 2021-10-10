@@ -22,7 +22,7 @@ jobs:
       - run: |
           sudo apt update && sudo apt install --fix-broken -y
       - run: |
-          sudo snap install -y chromium-ffmpeg
+          sudo snap install chromium-ffmpeg
       - run: |
           sudo apt install -y xpra
       - run: |
