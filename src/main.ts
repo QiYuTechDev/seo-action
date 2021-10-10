@@ -11,7 +11,6 @@ globalThis.fetch = fetch as any
 function main(): void {
     try {
         const version: string = core.getInput("version")
-        const url: string = core.getInput("url")
 
         core.info(`use seo version: ${version}`)
         downloadPackage(version)
