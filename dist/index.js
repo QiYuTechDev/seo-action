@@ -33,13 +33,20 @@ const child_process = __importStar(__nccwpck_require__(129));
  * 运行 cli 命令
  * @param cli
  * @param args
+ * @param sync
  */
-function cliRun(cli, args = null) {
+function cliRun(cli, args = null, sync = true) {
+    const debug = core.getBooleanInput("debug");
     core.info(`${cli} ${(args || []).join(" ")}`);
+    if (!sync) {
+        const ret = child_process.spawn(cli, args || []);
+    }
     let ret = child_process.spawnSync(cli, args || []);
     if (ret.status !== 0) {
-        core.warning(`stdout: ${ret.stdout}`);
-        core.error(`stderr: ${ret.stderr}`);
+        if (debug) {
+            core.warning(`stdout: ${ret.stdout}`);
+            core.error(`stderr: ${ret.stderr}`);
+        }
         if (cli === "xpra") {
             core.warning("xpra exec failed");
         }
@@ -48,8 +55,10 @@ function cliRun(cli, args = null) {
         }
     }
     else {
-        core.info(ret.stdout.toString());
-        core.warning(ret.stderr.toString());
+        if (debug) {
+            core.info(ret.stdout.toString());
+            core.warning(ret.stderr.toString());
+        }
     }
 }
 exports.cliRun = cliRun;
@@ -112,7 +121,7 @@ function runCode() {
         const timeout = Number(core.getInput("timeout"));
         const code = fs_1.default.readFileSync(`${process.env['GITHUB_WORKSPACE']}/${code_file}`, { encoding: 'utf-8' });
         core.info(`try to visit url: ${url}`);
-        core.info(`js code\n: ${code}\n\n`);
+        core.info(`js code:\n${code}\n\n`);
         const args = {
             url: url,
             fn_code: code,
@@ -323,19 +332,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(186));
-const node_fetch_1 = __importDefault(__nccwpck_require__(843));
 const dl_1 = __nccwpck_require__(657);
 const install_1 = __nccwpck_require__(39);
 const run_1 = __nccwpck_require__(884);
 const code_1 = __nccwpck_require__(311);
-if (!global.fetch) {
-    global.fetch = node_fetch_1.default;
-}
 function main() {
     try {
         const version = core.getInput("version");
@@ -401,7 +403,7 @@ function runMacOS() {
     (0, cli_1.cliRun)("brew", ["services", "start", "mongodb-community"]);
     core.info("start seo");
     (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--help"]);
-    (0, cli_1.cliRun)("nohup", ["./seo.app/Contents/MacOS/seo"]);
+    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", null, false);
 }
 function runWin32() {
     core.info("debug info");
@@ -412,7 +414,7 @@ function runWin32() {
     core.info("show all windows services");
     core.info("start seo");
     (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"]);
-    (0, cli_1.cliRun)("start", ["/b", "c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe"]);
+    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", [], false);
 }
 function runSeo() {
     process.env["SEO_REST_API_ENABLE"] = "1";
