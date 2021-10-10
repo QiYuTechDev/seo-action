@@ -4,7 +4,7 @@ import {cliRun} from "./cli";
 
 function runLinux() {
     core.info("install mongodb")
-    cliRun("xpra", ["start", "--start-child=\"seo\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"])
+    cliRun("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"])
 }
 
 function runMacOS() {
@@ -15,7 +15,7 @@ function runMacOS() {
     cliRun("brew", ["services", "start", "mongodb-community"])
     core.info("start seo")
     cliRun("./seo.app/Contents/MacOS/seo", ["--help"])
-    cliRun("./seo.app/Contents/MacOS/seo", null, false)
+    cliRun("./seo.app/Contents/MacOS/seo", ["--mongo-url=mongodb://127.0.0.1:27019"], false)
 }
 
 function runWin32() {
@@ -27,7 +27,7 @@ function runWin32() {
     core.info("show all windows services")
     core.info("start seo")
     cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"])
-    cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", null, false)
+    cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--mongo-url=mongodb://127.0.0.1:27019"], false)
 }
 
 export function runSeo() {
