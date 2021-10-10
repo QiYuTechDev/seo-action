@@ -39,7 +39,18 @@ function cliRun(cli, args = null, sync = true) {
     const debug = core.getBooleanInput("debug");
     core.info(`${cli} ${(args || []).join(" ")}`);
     if (!sync) {
-        const ret = child_process.spawn(cli, args || []);
+        const ret = child_process.spawn(cli, args || [], { detached: true });
+        ret.stdout.on('data', (data) => {
+            if (debug) {
+                core.info(`${cli} stdout: ${data}`);
+            }
+        });
+        ret.stderr.on('data', (data) => {
+            if (debug) {
+                core.warning(`${cli} stderr: ${data}`);
+            }
+        });
+        return;
     }
     let ret = child_process.spawnSync(cli, args || []);
     if (ret.status !== 0) {
@@ -332,12 +343,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(186));
+const node_fetch_1 = __importDefault(__nccwpck_require__(843));
 const dl_1 = __nccwpck_require__(657);
 const install_1 = __nccwpck_require__(39);
 const run_1 = __nccwpck_require__(884);
 const code_1 = __nccwpck_require__(311);
+globalThis.fetch = node_fetch_1.default;
 function main() {
     try {
         const version = core.getInput("version");
@@ -414,7 +430,7 @@ function runWin32() {
     core.info("show all windows services");
     core.info("start seo");
     (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"]);
-    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", [], false);
+    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", null, false);
 }
 function runSeo() {
     process.env["SEO_REST_API_ENABLE"] = "1";
