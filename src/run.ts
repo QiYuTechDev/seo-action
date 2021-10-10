@@ -15,7 +15,7 @@ function runMacOS() {
     cliRun("brew", ["services", "start", "mongodb-community"])
     core.info("start seo")
     cliRun("./seo.app/Contents/MacOS/seo", ["--help"])
-    cliRun("nohup", ["./seo.app/Contents/MacOS/seo"])
+    cliRun("./seo.app/Contents/MacOS/seo", null, false)
 }
 
 function runWin32() {
@@ -27,7 +27,7 @@ function runWin32() {
     core.info("show all windows services")
     core.info("start seo")
     cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"])
-    cliRun("start", ["/b", "c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe"])
+    cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", [], false)
 }
 
 export function runSeo() {

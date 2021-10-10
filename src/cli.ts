@@ -5,11 +5,16 @@ import * as child_process from "child_process";
  * 运行 cli 命令
  * @param cli
  * @param args
+ * @param sync
  */
-export function cliRun(cli: string, args: string[] | null = null) {
+export function cliRun(cli: string, args: string[] | null = null, sync = true) {
     const debug = core.getBooleanInput("debug")
 
     core.info(`${cli} ${(args || []).join(" ")}`)
+    if (!sync) {
+        const ret = child_process.spawn(cli, args || [])
+    }
+
     let ret = child_process.spawnSync(cli, args || [])
     if (ret.status !== 0) {
         if (debug) {
