@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import * as core from "@actions/core";
-import artifact from "@actions/artifact"
+import * as artifact from "@actions/artifact"
 import {Ci, RestCiArgs} from "qiyu-seo"
 import {cliRun} from "./cli";
 import {debugMode} from "./debug";
