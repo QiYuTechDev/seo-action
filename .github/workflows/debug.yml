@@ -25,8 +25,14 @@ jobs:
       - run: |
           sudo snap install chromium-ffmpeg
       - run: |
-          sudo apt install -y xpra
-      - run: |
           sudo ln -s /snap/chromium-ffmpeg/current/chromium-ffmpeg-104195/chromium-ffmpeg/libffmpeg.so /usr/lib/x86_64-linux-gnu/libffmpeg.so
+      - run: |
+          sudo apt install -y mongodb || true
+      - run: |
+          sudo apt remove -y mongodb
+      - run: |
+          sudo apt install -y mongodb
+      - run: |
+          sudo apt install -y xpra
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
