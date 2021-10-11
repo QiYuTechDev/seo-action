@@ -3,7 +3,7 @@ name: 'debug macos'
 on: # rebuild any PRs and main branch changes
   push:
     branches:
-      - debug
+      - debug_mac
 
 jobs:
   build: # make sure build/ci work properly
