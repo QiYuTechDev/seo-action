@@ -12,11 +12,16 @@ import * as child_process from "child_process";
 export function cliRun(cli: string, args: string[] | null = null, sync = true, allow_fail = false) {
     const debug = core.getBooleanInput("debug")
 
+    let shell = undefined
+    if (cli === "xpra") {
+        shell = true
+    }
+
     core.info(`${cli} ${(args || []).join(" ")}`)
     if (!sync) {
         const stdout: any[] = []
         const stderr: any[] = []
-        const ret = child_process.spawn(cli, args || [], {detached: true})
+        const ret = child_process.spawn(cli, args || [], {detached: true, shell: shell})
         ret.stdout.on('data', (data) => {
             stdout.push(data)
         })
@@ -36,7 +41,7 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
         return
     }
 
-    let ret = child_process.spawnSync(cli, args || [])
+    let ret = child_process.spawnSync(cli, args || [], {shell: shell})
     if (ret.status !== 0) {
         if (debug) {
             core.warning(`${cli} stdout: ${ret.stdout}`)
