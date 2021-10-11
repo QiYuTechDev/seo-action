@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import process from "process";
 import * as child_process from "child_process";
+import {debugMode} from "./debug";
 
 /**
  * 运行 cli 命令
@@ -10,8 +11,6 @@ import * as child_process from "child_process";
  * @param allow_fail
  */
 export function cliRun(cli: string, args: string[] | null = null, sync = true, allow_fail = false) {
-    const debug = core.getBooleanInput("debug")
-
     let shell = undefined
     if (cli === "xpra") {
         shell = true
@@ -43,7 +42,7 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
 
     let ret = child_process.spawnSync(cli, args || [], {shell: shell})
     if (ret.status !== 0) {
-        if (debug) {
+        if (debugMode()) {
             core.warning(`${cli} stdout: ${ret.stdout}`)
             core.error(`${cli} stderr: ${ret.stderr}`)
         }
@@ -53,7 +52,7 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
             core.setFailed(`exec ${cli} ${JSON.stringify(args)} failed`)
         }
     } else {
-        if (debug) {
+        if (debugMode()) {
             core.info(ret.stdout.toString())
             core.warning(ret.stderr.toString())
         }

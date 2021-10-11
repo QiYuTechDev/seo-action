@@ -2,6 +2,7 @@ import fs from "fs";
 import * as core from "@actions/core";
 import {Ci, RestCiArgs} from "qiyu-seo"
 import {cliRun} from "./cli";
+import {debugMode} from "./debug";
 
 /**
  * 运行 custom 代码
@@ -14,7 +15,6 @@ export async function runCode() {
     const video = core.getBooleanInput("video")
     const rrweb = core.getBooleanInput("rrweb")
     const timeout = Number(core.getInput("timeout"))
-    const debug = core.getBooleanInput("debug")
 
     const code = fs.readFileSync(`${process.env['GITHUB_WORKSPACE']}/${code_file}`, {encoding: 'utf-8'})
 
@@ -34,9 +34,12 @@ export async function runCode() {
 
     const bearer = process.env['SEO_REST_API_BEARER'] || 'seo'
 
-    if (debug) {
+    if (debugMode()) {
         cliRun("sudo", ["netstat", "-plnt"])
     }
-    const resp = await Ci.do_post({body: args, security: {bearer}})
+    const resp = await Ci.do_post({body: args, security: {bearer}}, async (resp) => {
+        return await resp.json()
+    }, async (resp) => {
+    })
     core.info(JSON.stringify(resp))
 }
