@@ -19,14 +19,14 @@ jobs:
       - run: |
           sudo dpkg -i seo_amd64.deb
       - run: |
-          sudo apt update && sudo apt install --fix-broken -y
+          sudo apt update
+      - run: |
+          sudo apt install --fix-broken -y
       - run: |
           sudo snap install chromium-ffmpeg
       - run: |
           sudo apt install -y xpra
       - run: |
           sudo ln -s /snap/chromium-ffmpeg/current/chromium-ffmpeg-104195/chromium-ffmpeg/libffmpeg.so /usr/lib/x86_64-linux-gnu/libffmpeg.so
-      - run: |
-          sudo apt install -y mongodb
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
