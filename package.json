@@ -27,7 +27,8 @@
     "@actions/artifact": "^0.5.2",
     "@actions/core": "^1.4.0",
     "node-fetch": "^3.0.0",
-    "qiyu-seo": "^0.0.3"
+    "qiyu-seo": "^0.0.3",
+    "tempfile": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^16.9.6",
