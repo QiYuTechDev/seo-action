@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import process from "process";
 import * as child_process from "child_process";
 
 /**
@@ -12,9 +13,24 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true) {
 
     core.info(`${cli} ${(args || []).join(" ")}`)
     if (!sync) {
-        process.nextTick(() => {
-            const ret = child_process.spawn(cli, args || [], {detached: true})
-            ret.unref()
+        const stdout: any[] = []
+        const stderr: any[] = []
+        const ret = child_process.spawn(cli, args || [], {detached: true})
+        ret.stdout.on('data', (data) => {
+            stdout.push(data)
+        })
+        ret.stderr.on('data', (data) => {
+            stderr.push(data)
+        })
+        process.on('beforeExit', () => {
+            core.info(`${cli} stdout:`)
+            for (const s of stdout) {
+                core.info(s)
+            }
+            core.warning(`${cli} stderr:`)
+            for (const s of stderr) {
+                core.warning(s)
+            }
         })
         return
     }
