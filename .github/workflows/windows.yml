@@ -20,4 +20,7 @@ jobs:
         with:
           version: "0.7.0"
           url: "https://news.ycombinator.com/"
+          pdf: true
+          snapshot: true
+          rrweb: true
           debug: true
