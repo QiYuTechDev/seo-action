@@ -19,7 +19,6 @@ export function installPackage() {
             break
         case 'linux':
             cliRun("sudo", ["apt", "update"])
-            cliRun("sudo", ["apt", "install", "-qq", "-y", "ffmpeg"])
             cliRun("sudo", ["dpkg", "-i", file])
             cliRun("sudo", ["apt", "--fix-broken", "-y", "install"])
             cliRun("sudo", ["snap", "install", "chromium-ffmpeg"])
