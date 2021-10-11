@@ -7,7 +7,11 @@ function runLinux() {
     cliRun("wget", ["-qq", "https://repo.mongodb.org/apt/ubuntu/dists/focal/mongodb-org/5.0/multiverse/binary-amd64/mongodb-org-server_5.0.3_amd64.deb"])
     cliRun("sudo", ["dpkg", "-i", "mongodb-org-server_5.0.3_amd64.deb"])
     cliRun("sudo", ["mongod", "--fork", "--port=27019", "-f", "/etc/mongod.conf"])
+    core.info("xpra env info")
+    cliRun("xpra", ["start", "--start-child=\"env\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true)
+    core.info("test mongodb connection")
     cliRun("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019 --test-mongo-server\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true)
+    core.info("start seo in background")
     cliRun("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"])
 }
 
