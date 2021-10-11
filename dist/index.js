@@ -60,11 +60,11 @@ function cliRun(cli, args = null, sync = true, allow_fail = false) {
         process_1.default.on('beforeExit', () => {
             core.info(`${cli} stdout:`);
             for (const s of stdout) {
-                core.info(s);
+                core.notice(s);
             }
-            core.warning(`${cli} stderr:`);
+            core.info(`${cli} stderr:`);
             for (const s of stderr) {
-                core.warning(s);
+                core.info(s);
             }
         });
         return;
@@ -72,11 +72,11 @@ function cliRun(cli, args = null, sync = true, allow_fail = false) {
     let ret = child_process.spawnSync(cli, args || [], { shell: shell });
     if (ret.status !== 0) {
         if ((0, debug_1.debugMode)()) {
-            core.warning(`${cli} stdout: ${ret.stdout}`);
-            core.error(`${cli} stderr: ${ret.stderr}`);
+            core.notice(`${cli} stdout: ${ret.stdout}`);
+            core.info(`${cli} stderr: ${ret.stderr}`);
         }
         if (allow_fail) {
-            core.warning(`exec ${cli} ${JSON.stringify(args)} failed`);
+            core.info(`exec ${cli} ${JSON.stringify(args)} failed`);
         }
         else {
             core.setFailed(`exec ${cli} ${JSON.stringify(args)} failed`);
@@ -84,8 +84,8 @@ function cliRun(cli, args = null, sync = true, allow_fail = false) {
     }
     else {
         if ((0, debug_1.debugMode)()) {
-            core.info(ret.stdout.toString());
-            core.warning(ret.stderr.toString());
+            core.notice(ret.stdout.toString());
+            core.info(ret.stderr.toString());
         }
     }
 }

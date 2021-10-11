@@ -30,11 +30,11 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
         process.on('beforeExit', () => {
             core.info(`${cli} stdout:`)
             for (const s of stdout) {
-                core.info(s)
+                core.notice(s)
             }
-            core.warning(`${cli} stderr:`)
+            core.info(`${cli} stderr:`)
             for (const s of stderr) {
-                core.warning(s)
+                core.info(s)
             }
         })
         return
@@ -43,18 +43,18 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
     let ret = child_process.spawnSync(cli, args || [], {shell: shell})
     if (ret.status !== 0) {
         if (debugMode()) {
-            core.warning(`${cli} stdout: ${ret.stdout}`)
-            core.error(`${cli} stderr: ${ret.stderr}`)
+            core.notice(`${cli} stdout: ${ret.stdout}`)
+            core.info(`${cli} stderr: ${ret.stderr}`)
         }
         if (allow_fail) {
-            core.warning(`exec ${cli} ${JSON.stringify(args)} failed`)
+            core.info(`exec ${cli} ${JSON.stringify(args)} failed`)
         } else {
             core.setFailed(`exec ${cli} ${JSON.stringify(args)} failed`)
         }
     } else {
         if (debugMode()) {
-            core.info(ret.stdout.toString())
-            core.warning(ret.stderr.toString())
+            core.notice(ret.stdout.toString())
+            core.info(ret.stderr.toString())
         }
     }
 }
