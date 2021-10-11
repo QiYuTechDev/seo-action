@@ -7,8 +7,9 @@ import * as child_process from "child_process";
  * @param cli
  * @param args
  * @param sync
+ * @param allow_fail
  */
-export function cliRun(cli: string, args: string[] | null = null, sync = true) {
+export function cliRun(cli: string, args: string[] | null = null, sync = true, allow_fail = false) {
     const debug = core.getBooleanInput("debug")
 
     core.info(`${cli} ${(args || []).join(" ")}`)
@@ -41,10 +42,10 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true) {
             core.warning(`stdout: ${ret.stdout}`)
             core.error(`stderr: ${ret.stderr}`)
         }
-        if (cli === "xpra") {
-            core.warning("xpra exec failed")
+        if (allow_fail) {
+            core.warning(`exec ${cli} ${JSON.stringify(args)} failed`)
         } else {
-            core.setFailed(`exec ${cli} failed`)
+            core.setFailed(`exec ${cli} ${JSON.stringify(args)} failed`)
         }
     } else {
         if (debug) {

@@ -4,10 +4,10 @@ import {cliRun} from "./cli";
 
 function runLinux() {
     core.info("install mongodb")
-    cliRun("sudo", ["apt", "install", "-y", "mongodb"])
-    cliRun("sudo", ["apt", "remove", "-y", "mongodb"])
-    cliRun("sudo", ["apt", "install", "-y", "mongodb"])
-    cliRun("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019 --test-mongo-server\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"])
+    cliRun("sudo", ["apt", "install", "-y", "mongodb"], true, true)
+    cliRun("sudo", ["apt", "remove", "-y", "mongodb"], true, true)
+    cliRun("sudo", ["apt", "install", "-y", "mongodb"], true, false)
+    cliRun("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019 --test-mongo-server\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true)
     cliRun("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"])
 }
 
