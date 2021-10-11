@@ -27,11 +27,9 @@ jobs:
       - run: |
           sudo ln -s /snap/chromium-ffmpeg/current/chromium-ffmpeg-104195/chromium-ffmpeg/libffmpeg.so /usr/lib/x86_64-linux-gnu/libffmpeg.so
       - run: |
-          sudo apt install -y mongodb || true
+          wget -qq https://repo.mongodb.org/apt/ubuntu/dists/focal/mongodb-org/5.0/multiverse/binary-amd64/mongodb-org-server_5.0.3_amd64.deb
       - run: |
-          sudo apt remove -y mongodb
-      - run: |
-          sudo apt install -y mongodb
+          sudo dpkg -i mongodb-org-server_5.0.3_amd64.deb
       - run: |
           sudo apt install -y xpra
       - name: Setup tmate session
