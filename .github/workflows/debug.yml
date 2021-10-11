@@ -15,7 +15,7 @@ jobs:
       - run: |
           npm run all
       - run: |
-          wget https://github.com/QiYuTechDev/seo/releases/download/0.7.0/seo_amd64.deb
+          wget -qq https://github.com/QiYuTechDev/seo/releases/download/0.7.0/seo_amd64.deb
       - run: |
           sudo dpkg -i seo_amd64.deb
       - run: |
