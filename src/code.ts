@@ -35,7 +35,7 @@ export async function runCode() {
     const bearer = process.env['SEO_REST_API_BEARER'] || 'seo'
 
     if (debug) {
-        cliRun("sudo", ["netstat", "-apn"])
+        cliRun("sudo", ["netstat", "-plnt"])
     }
     const resp = await Ci.do_post({body: args, security: {bearer}})
     core.info(JSON.stringify(resp))
