@@ -1,17 +1,10 @@
-# QiYuTech SEO Action
+# 奇遇网络工具箱 GitHub Action
 
 [![build-test](https://github.com/QiYuTechDev/demo-action/actions/workflows/test.yml/badge.svg)](https://github.com/QiYuTechDev/demo-action/actions/workflows/test.yml)
 
-## GitHub Action 使用
+[github action 使用文档](https://oss.qiyutech.tech/seo/github_action.html)
 
-```yaml
-- uses: QiYuTechDev/seo-action
-  with:
-    version: "0.7.0"
-    url: "https://news.ycombinator.com/"
-```
-
-## 文档
+## 开发文档
 
 安装依赖
 
@@ -22,6 +15,6 @@ $ npm install
 编译 & 打包
 
 ```bash
-$ npm run build && npm run package
+$ make package
 ```
 
