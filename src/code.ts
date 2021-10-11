@@ -1,9 +1,17 @@
 import fs from "fs";
+import path from "path";
 import os from "os";
 import * as core from "@actions/core";
+import artifact from "@actions/artifact"
 import {Ci, RestCiArgs} from "qiyu-seo"
 import {cliRun} from "./cli";
 import {debugMode} from "./debug";
+
+
+async function uploadFile(name: string, file: string) {
+    const client = artifact.create()
+    await client.uploadArtifact(name, [file], path.dirname(file), {continueOnError: true})
+}
 
 /**
  * 运行 custom 代码
@@ -39,18 +47,31 @@ export async function runCode() {
         cliRun("sudo", ["netstat", "-plnt"])
     }
 
+    let success = true;
     const resp = await Ci.do_post({body: args, security: {bearer}},
         async (resp) => {
             return await resp.json()
         },
         async (resp) => {
             const txt = await resp.text()
+            success = false
             core.setFailed(`失败:
 http code: ${resp.status} 
 result: ${txt}
 `)
         })
 
-    core.info("success:")
-    core.info(JSON.stringify(resp, null, 2))
+    if (success) {
+        if (snapshot && resp.data?.snapshot_file) {
+            await uploadFile("snapshot", resp.data.snapshot_file)
+        }
+        if (pdf && resp.data?.pdf_file) {
+            await uploadFile("pdf", resp.data.pdf_file)
+        }
+        if (rrweb && resp.data?.rrweb_file) {
+            await uploadFile("rrweb", resp.data.rrweb_file)
+        }
+        core.info("success:")
+        core.info(JSON.stringify(resp, null, 2))
+    }
 }
