@@ -39,8 +39,8 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
     let ret = child_process.spawnSync(cli, args || [])
     if (ret.status !== 0) {
         if (debug) {
-            core.warning(`stdout: ${ret.stdout}`)
-            core.error(`stderr: ${ret.stderr}`)
+            core.warning(`${cli} stdout: ${ret.stdout}`)
+            core.error(`${cli} stderr: ${ret.stderr}`)
         }
         if (allow_fail) {
             core.warning(`exec ${cli} ${JSON.stringify(args)} failed`)
