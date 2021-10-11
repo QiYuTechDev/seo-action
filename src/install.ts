@@ -24,6 +24,7 @@ export function installPackage() {
             cliRun("sudo", ["snap", "install", "chromium-ffmpeg"])
             cliRun("sudo", ["ln", "-s", "/snap/chromium-ffmpeg/current/chromium-ffmpeg-104195/chromium-ffmpeg/libffmpeg.so", "/usr/lib/x86_64-linux-gnu/libffmpeg.so"])
             cliRun("sudo", ["apt", "install", "-qq", "-y", "xpra", "dbus-x11"])
+            cliRun("pip3", ["install", "--user", "xpra"])
             break
         case  'darwin':
             cliRun("unzip", ["-qq", file])
