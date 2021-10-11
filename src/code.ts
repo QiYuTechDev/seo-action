@@ -1,5 +1,4 @@
 import fs from "fs";
-import tempfile from 'tempfile';
 import path from "path";
 import os from "os";
 import * as core from "@actions/core";
@@ -73,7 +72,7 @@ result: ${txt}
             await uploadFile("rrweb", resp.data.rrweb_file)
         }
         const data = JSON.stringify(resp, null, 2)
-        const out_file = tempfile(".json")
+        const out_file = `${os.tmpdir()}/seo.json`
         fs.writeFileSync(out_file, data)
         await uploadFile("result", out_file)
         core.info(`success:\n${data}`)
