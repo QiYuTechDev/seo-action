@@ -37,9 +37,19 @@ export async function runCode() {
     if (debugMode()) {
         cliRun("sudo", ["netstat", "-plnt"])
     }
-    const resp = await Ci.do_post({body: args, security: {bearer}}, async (resp) => {
-        return await resp.json()
-    }, async (resp) => {
-    })
+
+    const resp = await Ci.do_post({body: args, security: {bearer}},
+        async (resp) => {
+            return await resp.json()
+        },
+        async (resp) => {
+            const txt = await resp.text()
+            core.setFailed(`失败:
+http code: ${resp.status} 
+result: ${txt}
+`)
+        })
+
+    core.info("success:")
     core.info(JSON.stringify(resp))
 }
