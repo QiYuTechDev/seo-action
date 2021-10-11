@@ -25,48 +25,65 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.cliRun = void 0;
 const core = __importStar(__nccwpck_require__(186));
+const process_1 = __importDefault(__nccwpck_require__(765));
 const child_process = __importStar(__nccwpck_require__(129));
+const debug_1 = __nccwpck_require__(800);
 /**
  * 运行 cli 命令
  * @param cli
  * @param args
  * @param sync
+ * @param allow_fail
  */
-function cliRun(cli, args = null, sync = true) {
-    const debug = core.getBooleanInput("debug");
+function cliRun(cli, args = null, sync = true, allow_fail = false) {
+    let shell = undefined;
+    if (cli === "xpra") {
+        shell = true;
+    }
     core.info(`${cli} ${(args || []).join(" ")}`);
     if (!sync) {
-        const ret = child_process.spawn(cli, args || [], { detached: true });
+        const stdout = [];
+        const stderr = [];
+        const ret = child_process.spawn(cli, args || [], { detached: true, shell: shell });
         ret.stdout.on('data', (data) => {
-            if (debug) {
-                core.info(`${cli} stdout: ${data}`);
-            }
+            stdout.push(data);
         });
         ret.stderr.on('data', (data) => {
-            if (debug) {
-                core.warning(`${cli} stderr: ${data}`);
+            stderr.push(data);
+        });
+        process_1.default.on('beforeExit', () => {
+            core.info(`${cli} stdout:`);
+            for (const s of stdout) {
+                core.info(s);
+            }
+            core.warning(`${cli} stderr:`);
+            for (const s of stderr) {
+                core.warning(s);
             }
         });
         return;
     }
-    let ret = child_process.spawnSync(cli, args || []);
+    let ret = child_process.spawnSync(cli, args || [], { shell: shell });
     if (ret.status !== 0) {
-        if (debug) {
-            core.warning(`stdout: ${ret.stdout}`);
-            core.error(`stderr: ${ret.stderr}`);
+        if ((0, debug_1.debugMode)()) {
+            core.warning(`${cli} stdout: ${ret.stdout}`);
+            core.error(`${cli} stderr: ${ret.stderr}`);
         }
-        if (cli === "xpra") {
-            core.warning("xpra exec failed");
+        if (allow_fail) {
+            core.warning(`exec ${cli} ${JSON.stringify(args)} failed`);
         }
         else {
-            core.setFailed(`exec ${cli} failed`);
+            core.setFailed(`exec ${cli} ${JSON.stringify(args)} failed`);
         }
     }
     else {
-        if (debug) {
+        if ((0, debug_1.debugMode)()) {
             core.info(ret.stdout.toString());
             core.warning(ret.stderr.toString());
         }
@@ -118,6 +135,8 @@ exports.runCode = void 0;
 const fs_1 = __importDefault(__nccwpck_require__(747));
 const core = __importStar(__nccwpck_require__(186));
 const qiyu_seo_1 = __nccwpck_require__(243);
+const cli_1 = __nccwpck_require__(504);
+const debug_1 = __nccwpck_require__(800);
 /**
  * 运行 custom 代码
  */
@@ -144,11 +163,61 @@ function runCode() {
             rrweb: rrweb,
         };
         const bearer = process.env['SEO_REST_API_BEARER'] || 'seo';
-        const resp = yield qiyu_seo_1.Ci.do_post({ body: args, security: { bearer } });
+        if ((0, debug_1.debugMode)()) {
+            (0, cli_1.cliRun)("sudo", ["netstat", "-plnt"]);
+        }
+        const resp = yield qiyu_seo_1.Ci.do_post({ body: args, security: { bearer } }, (resp) => __awaiter(this, void 0, void 0, function* () {
+            return yield resp.json();
+        }), (resp) => __awaiter(this, void 0, void 0, function* () {
+            const txt = yield resp.text();
+            core.setFailed(`失败:
+http code: ${resp.status} 
+result: ${txt}
+`);
+        }));
+        core.info("success:");
         core.info(JSON.stringify(resp));
     });
 }
 exports.runCode = runCode;
+
+
+/***/ }),
+
+/***/ 800:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.debugMode = void 0;
+const core = __importStar(__nccwpck_require__(186));
+/**
+ * 调试模式
+ */
+function debugMode() {
+    return core.getBooleanInput("debug") || false;
+}
+exports.debugMode = debugMode;
 
 
 /***/ }),
@@ -290,12 +359,12 @@ function installPackage() {
             break;
         case 'linux':
             (0, cli_1.cliRun)("sudo", ["apt", "update"]);
-            (0, cli_1.cliRun)("sudo", ["apt", "install", "-qq", "-y", "ffmpeg"]);
             (0, cli_1.cliRun)("sudo", ["dpkg", "-i", file]);
             (0, cli_1.cliRun)("sudo", ["apt", "--fix-broken", "-y", "install"]);
             (0, cli_1.cliRun)("sudo", ["snap", "install", "chromium-ffmpeg"]);
             (0, cli_1.cliRun)("sudo", ["ln", "-s", "/snap/chromium-ffmpeg/current/chromium-ffmpeg-104195/chromium-ffmpeg/libffmpeg.so", "/usr/lib/x86_64-linux-gnu/libffmpeg.so"]);
-            (0, cli_1.cliRun)("sudo", ["apt", "install", "-qq", "-y", "xpra"]);
+            (0, cli_1.cliRun)("sudo", ["apt", "install", "-qq", "-y", "xpra", "dbus-x11"]);
+            (0, cli_1.cliRun)("pip3", ["install", "--user", "xpra"]);
             break;
         case 'darwin':
             (0, cli_1.cliRun)("unzip", ["-qq", file]);
@@ -357,14 +426,14 @@ globalThis.fetch = node_fetch_1.default;
 function main() {
     try {
         const version = core.getInput("version");
-        const url = core.getInput("url");
         core.info(`use seo version: ${version}`);
         (0, dl_1.downloadPackage)(version);
         (0, install_1.installPackage)();
         (0, run_1.runSeo)();
         setTimeout(() => __awaiter(this, void 0, void 0, function* () {
             yield (0, code_1.runCode)();
-        }));
+            process.exit(0);
+        }), 10 * 1000); // wait seo startup
     }
     catch (error) {
         core.setFailed(error.message);
@@ -407,9 +476,18 @@ exports.runSeo = void 0;
 const os_1 = __importDefault(__nccwpck_require__(87));
 const core = __importStar(__nccwpck_require__(186));
 const cli_1 = __nccwpck_require__(504);
+const debug_1 = __nccwpck_require__(800);
 function runLinux() {
     core.info("install mongodb");
-    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"seo\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"]);
+    (0, cli_1.cliRun)("wget", ["-qq", "https://repo.mongodb.org/apt/ubuntu/dists/focal/mongodb-org/5.0/multiverse/binary-amd64/mongodb-org-server_5.0.3_amd64.deb"]);
+    (0, cli_1.cliRun)("sudo", ["dpkg", "-i", "mongodb-org-server_5.0.3_amd64.deb"]);
+    (0, cli_1.cliRun)("sudo", ["mongod", "--fork", "--port=27019", "-f", "/etc/mongod.conf"]);
+    core.info("xpra env info");
+    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"env\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true);
+    core.info("test mongodb connection");
+    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019 --test-mongo-server\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true);
+    core.info("start seo in background");
+    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"]);
 }
 function runMacOS() {
     core.info("install mongodb");
@@ -418,19 +496,22 @@ function runMacOS() {
     core.info("start mongodb");
     (0, cli_1.cliRun)("brew", ["services", "start", "mongodb-community"]);
     core.info("start seo");
-    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--help"]);
-    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", null, false);
+    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"]);
+    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--mongo-url=mongodb://127.0.0.1:27019"], false);
 }
 function runWin32() {
-    core.info("debug info");
-    (0, cli_1.cliRun)("whoami");
-    (0, cli_1.cliRun)("ls", ["c:\\\\users\\\\runneradmin\\\\AppData\\\\Local\\\\seo"]);
+    if ((0, debug_1.debugMode)()) {
+        core.info("debug info");
+        (0, cli_1.cliRun)("whoami");
+        (0, cli_1.cliRun)("ls", ["c:\\\\users\\\\runneradmin\\\\AppData\\\\Local\\\\seo"]);
+    }
     core.info("install mongodb");
     (0, cli_1.cliRun)("choco", ["install", "mongodb"]);
     core.info("show all windows services");
+    core.info("test mongodb connection");
+    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"]);
     core.info("start seo");
-    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--help"]);
-    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", null, false);
+    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--mongo-url=mongodb://127.0.0.1:27019"], false);
 }
 function runSeo() {
     process.env["SEO_REST_API_ENABLE"] = "1";
@@ -8171,7 +8252,7 @@ try {
 /***/ 243:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
-var r=function(r,e,u){void 0===e&&(e=null),void 0===u&&(u=null);try{var l,t=function(){if(!r.path_args)return r.base_url+r.path_url;var e=r.path_url.split("/").map(function(e){return e.startsWith("{")&&e.endsWith("}")?r.path_args[e.substring(1,e.length-1)]:e}).join("/");return r.base_url+e}()+(r.query_args?"?"+new URLSearchParams(r.query_args).toString():""),n=r.header||{"Accept-Type":"application/json"},o=r.body?JSON.stringify(r.body):null,a=null==(l=r.security)?void 0:l.bearer;return a&&(n.Authorization="Bearer "+a),o&&!n["Content-Type"]&&(n["Content-Type"]="application/json"),Promise.resolve(fetch(t,{method:r.method,headers:n,body:o})).then(function(r){return r.ok?Promise.resolve(e?e(r):r.json()):u?Promise.resolve(u(r)):null})}catch(r){return Promise.reject(r)}},e=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/browser/list",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),u=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/browser",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/browser",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/browser",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),l=function(){function e(){}return e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/cc",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/cc",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),t=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/cc/list",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),n=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/cc/total",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),o=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/ci",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),a=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/code/list",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),s=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/code",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/code",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/code",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),i=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/crawl/start",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),d=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/crawl/stop",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),c=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/crawl",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/crawl",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/crawl",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),h=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/crawl/list",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),y=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/monitor",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/monitor",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/monitor",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),_=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/pdf",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),g=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/html",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),p=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/sandbox/func",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),b=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/sandbox/code",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),m=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/search_engine/all",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),v=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/search_engine",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/search_engine",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/search_engine",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),f=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/search",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),P=null;function q(){return P||"http://127.0.0.1:18082/rest/api"}"undefined"==typeof fetch&&(global.fetch=__nccwpck_require__(843)),exports.Browser=u,exports.BrowserList=e,exports.Cc=l,exports.CcList=t,exports.CcTotal=n,exports.Ci=o,exports.Code=s,exports.CodeList=a,exports.Crawl=c,exports.CrawlList=h,exports.CrawlStart=i,exports.CrawlStop=d,exports.Html=g,exports.Monitor=y,exports.Pdf=_,exports.SandboxCode=b,exports.SandboxFunc=p,exports.Search=f,exports.SearchEngine=v,exports.SearchEngineAll=m,exports.getGlobalBaseUrl=q,exports.setGlobalBaseUrl=function(r){P=r};
+var r=function(r,e,u){void 0===e&&(e=null),void 0===u&&(u=null);try{var l,t=function(){if(!r.path_args)return r.base_url+r.path_url;var e=r.path_url.split("/").map(function(e){return e.startsWith("{")&&e.endsWith("}")?r.path_args[e.substring(1,e.length-1)]:e}).join("/");return r.base_url+e}()+(r.query_args?"?"+new URLSearchParams(r.query_args).toString():""),n=r.header||{"Accept-Type":"application/json"},o=r.body?JSON.stringify(r.body):null,a=null==(l=r.security)?void 0:l.bearer;return a&&(n.Authorization="Bearer "+a),o&&!n["Content-Type"]&&(n["Content-Type"]="application/json"),Promise.resolve(fetch(t,{method:r.method,headers:n,body:o})).then(function(r){return r.ok?Promise.resolve(e?e(r):r.json()):u?Promise.resolve(u(r)):null})}catch(r){return Promise.reject(r)}},e=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/browser/list",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),u=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/browser",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/browser",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/browser",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),l=function(){function e(){}return e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/cc",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/cc",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),t=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/cc/list",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),n=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/cc/total",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),o=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/ci",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),a=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/code/list",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),s=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/code",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/code",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/code",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),i=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/crawl/start",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),d=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/crawl/stop",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),c=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/crawl",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/crawl",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/crawl",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),h=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/crawl/list",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),y=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/monitor",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/monitor",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/monitor",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),_=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/pdf",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),g=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/html",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),p=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/sandbox/func",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),b=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/sandbox/code",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),m=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/search_engine/all",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),v=function(){function e(){}return e.do_get=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"GET",base_url:q(),path_url:"/search_engine",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_put=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"PUT",base_url:q(),path_url:"/search_engine",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e.do_delete=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"DELETE",base_url:q(),path_url:"/search_engine",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),f=function(){function e(){}return e.do_post=function(e,u,l){void 0===u&&(u=null),void 0===l&&(l=null);try{return Promise.resolve(r({method:"POST",base_url:q(),path_url:"/search",path_args:e.path_args||null,query_args:e.query_args||null,header:e.header||null,body:e.body||null,security:e.security||null},u,l))}catch(r){return Promise.reject(r)}},e}(),P=null;function q(){return P||"http://127.0.0.1:18082/v1"}"undefined"==typeof fetch&&(global.fetch=__nccwpck_require__(843)),exports.Browser=u,exports.BrowserList=e,exports.Cc=l,exports.CcList=t,exports.CcTotal=n,exports.Ci=o,exports.Code=s,exports.CodeList=a,exports.Crawl=c,exports.CrawlList=h,exports.CrawlStart=i,exports.CrawlStop=d,exports.Html=g,exports.Monitor=y,exports.Pdf=_,exports.SandboxCode=b,exports.SandboxFunc=p,exports.Search=f,exports.SearchEngine=v,exports.SearchEngineAll=m,exports.getGlobalBaseUrl=q,exports.setGlobalBaseUrl=function(r){P=r};
 //# sourceMappingURL=seo_js_sdk.cjs.map
 
 
@@ -8254,6 +8335,14 @@ module.exports = require("os");
 
 "use strict";
 module.exports = require("path");
+
+/***/ }),
+
+/***/ 765:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("process");
 
 /***/ }),
 
