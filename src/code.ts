@@ -1,4 +1,5 @@
 import fs from "fs";
+import os from "os";
 import * as core from "@actions/core";
 import {Ci, RestCiArgs} from "qiyu-seo"
 import {cliRun} from "./cli";
@@ -34,7 +35,7 @@ export async function runCode() {
 
     const bearer = process.env['SEO_REST_API_BEARER'] || 'seo'
 
-    if (debugMode()) {
+    if (debugMode() && os.platform() === 'linux') {
         cliRun("sudo", ["netstat", "-plnt"])
     }
 
@@ -51,5 +52,5 @@ result: ${txt}
         })
 
     core.info("success:")
-    core.info(JSON.stringify(resp))
+    core.info(JSON.stringify(resp, null, 2))
 }
