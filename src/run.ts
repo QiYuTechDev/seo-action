@@ -1,6 +1,7 @@
 import os from "os"
 import * as core from "@actions/core"
 import {cliRun} from "./cli";
+import {debugMode} from "./debug";
 
 function runLinux() {
     core.info("install mongodb")
@@ -27,14 +28,17 @@ function runMacOS() {
 }
 
 function runWin32() {
-    core.info("debug info")
-    cliRun("whoami")
-    cliRun("ls", ["c:\\\\users\\\\runneradmin\\\\AppData\\\\Local\\\\seo"])
+    if (debugMode()) {
+        core.info("debug info")
+        cliRun("whoami")
+        cliRun("ls", ["c:\\\\users\\\\runneradmin\\\\AppData\\\\Local\\\\seo"])
+    }
     core.info("install mongodb")
     cliRun("choco", ["install", "mongodb"])
     core.info("show all windows services")
-    core.info("start seo")
+    core.info("test mongodb connection")
     cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"])
+    core.info("start seo")
     cliRun("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--mongo-url=mongodb://127.0.0.1:27019"], false)
 }
 
