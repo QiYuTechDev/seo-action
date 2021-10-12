@@ -30,11 +30,11 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
         process.on('beforeExit', () => {
             core.info(`${cli} stdout:`)
             for (const s of stdout) {
-                core.notice(s)
+                core.info(s)
             }
             core.info(`${cli} stderr:`)
             for (const s of stderr) {
-                core.info(s)
+                core.warning(s)
             }
         })
         return
@@ -43,8 +43,8 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
     let ret = child_process.spawnSync(cli, args || [], {shell: shell})
     if (ret.status !== 0) {
         if (debugMode()) {
-            core.notice(`${cli} stdout: ${ret.stdout}`)
-            core.info(`${cli} stderr: ${ret.stderr}`)
+            core.info(`${cli} stdout: ${ret.stdout}`)
+            core.warning(`${cli} stderr: ${ret.stderr}`)
         }
         if (allow_fail) {
             core.info(`exec ${cli} ${JSON.stringify(args)} failed`)
@@ -53,8 +53,8 @@ export function cliRun(cli: string, args: string[] | null = null, sync = true, a
         }
     } else {
         if (debugMode()) {
-            core.notice(ret.stdout.toString())
-            core.info(ret.stderr.toString())
+            core.info(ret.stdout.toString())
+            core.warning(ret.stderr.toString())
         }
     }
 }
