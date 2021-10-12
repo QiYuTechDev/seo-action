@@ -6,6 +6,7 @@ import * as artifact from "@actions/artifact"
 import {Ci, RestCiArgs} from "qiyu-seo"
 import {cliRun} from "./cli";
 import {debugMode} from "./debug";
+import {showNotice} from "./gh_notice";
 
 
 async function uploadFile(name: string, file: string) {
@@ -63,30 +64,23 @@ result: ${txt}
 
 
     if (success) {
-        const run_id = process.env["GITHUB_RUN_ID"] || ""
-        const repo = process.env['GITHUB_REPOSITORY'] || ""
-
-        const url = new URL("https://ci.2cc.net")
-        url.searchParams.set("run_id", run_id)
-        url.searchParams.set("repo", repo)
-
         if (snapshot && resp.data?.snapshot_file) {
             await uploadFile("snapshot", resp.data.snapshot_file)
-            url.searchParams.set("type", "snapshot")
-            core.notice(`you can view snapshot by: ${url.toString()}`)
+            showNotice("snapshot")
         }
         if (pdf && resp.data?.pdf_file) {
-            url.searchParams.set("type", "pdf")
             await uploadFile("pdf", resp.data.pdf_file)
+            showNotice("pdf")
         }
         if (rrweb && resp.data?.rrweb_file) {
-            url.searchParams.set("type", "rrweb")
             await uploadFile("rrweb", resp.data.rrweb_file)
+            showNotice("rrweb")
         }
         const data = JSON.stringify(resp, null, 2)
         const out_file = `${os.tmpdir()}/seo.json`
         fs.writeFileSync(out_file, data)
         await uploadFile("result", out_file)
+        showNotice('result')
         core.info(`success:\n${data}`)
         core.setOutput("SEO_RESULT_FILE", out_file)
     }

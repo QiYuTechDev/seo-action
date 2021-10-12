@@ -37,6 +37,10 @@ inputs:
     required: true
     description: "debug the action"
     default: false
+  gh_token:
+    required: true
+    description: "GitHub personal access token with public_repo permission(for the view the artifacts)"
+    default: ""
 runs:
   using: "node12"
   main: "dist/index.js"
