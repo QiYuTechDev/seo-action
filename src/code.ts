@@ -61,14 +61,26 @@ result: ${txt}
 `)
         })
 
+
     if (success) {
+        const run_id = process.env["GITHUB_RUN_ID"] || ""
+        const repo = process.env['GITHUB_REPOSITORY'] || ""
+
+        const url = new URL("https://ci.2cc.net")
+        url.searchParams.set("run_id", run_id)
+        url.searchParams.set("repo", repo)
+
         if (snapshot && resp.data?.snapshot_file) {
             await uploadFile("snapshot", resp.data.snapshot_file)
+            url.searchParams.set("type", "snapshot")
+            core.notice(`you can view snapshot by: ${url.toString()}`)
         }
         if (pdf && resp.data?.pdf_file) {
+            url.searchParams.set("type", "pdf")
             await uploadFile("pdf", resp.data.pdf_file)
         }
         if (rrweb && resp.data?.rrweb_file) {
+            url.searchParams.set("type", "rrweb")
             await uploadFile("rrweb", resp.data.rrweb_file)
         }
         const data = JSON.stringify(resp, null, 2)
