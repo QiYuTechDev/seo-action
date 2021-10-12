@@ -380,14 +380,20 @@ function showNotice(name) {
     const run_id = process.env["GITHUB_RUN_ID"] || "";
     const repo = process.env['GITHUB_REPOSITORY'] || "";
     const gh_token = core.getInput("gh_token");
-    const url = new URL("https://ci.2cc.net");
+    let url;
+    if (name === 'rrweb') {
+        url = new URL("https://ci.2cc.net/v1/rrweb_index.html");
+    }
+    else {
+        url = new URL("https://ci.2cc.net/v1/rrweb_index.html");
+    }
     url.searchParams.set("run_id", run_id);
     url.searchParams.set("repo", repo);
     url.searchParams.set('name', name);
     if (gh_token) {
         url.searchParams.set("gh_token", gh_token);
     }
-    core.notice(`you can view ${name} by\n:${url.toString()}`);
+    core.notice(`you can view ${name} by: ${url.toString()}`);
 }
 exports.showNotice = showNotice;
 
