@@ -60,11 +60,11 @@ function cliRun(cli, args = null, sync = true, allow_fail = false) {
         process_1.default.on('beforeExit', () => {
             core.info(`${cli} stdout:`);
             for (const s of stdout) {
-                core.notice(s);
+                core.info(s);
             }
             core.info(`${cli} stderr:`);
             for (const s of stderr) {
-                core.info(s);
+                core.warning(s);
             }
         });
         return;
@@ -72,8 +72,8 @@ function cliRun(cli, args = null, sync = true, allow_fail = false) {
     let ret = child_process.spawnSync(cli, args || [], { shell: shell });
     if (ret.status !== 0) {
         if ((0, debug_1.debugMode)()) {
-            core.notice(`${cli} stdout: ${ret.stdout}`);
-            core.info(`${cli} stderr: ${ret.stderr}`);
+            core.info(`${cli} stdout: ${ret.stdout}`);
+            core.warning(`${cli} stderr: ${ret.stderr}`);
         }
         if (allow_fail) {
             core.info(`exec ${cli} ${JSON.stringify(args)} failed`);
@@ -84,8 +84,8 @@ function cliRun(cli, args = null, sync = true, allow_fail = false) {
     }
     else {
         if ((0, debug_1.debugMode)()) {
-            core.notice(ret.stdout.toString());
-            core.info(ret.stderr.toString());
+            core.info(ret.stdout.toString());
+            core.warning(ret.stderr.toString());
         }
     }
 }
@@ -140,6 +140,7 @@ const artifact = __importStar(__nccwpck_require__(2605));
 const qiyu_seo_1 = __nccwpck_require__(6243);
 const cli_1 = __nccwpck_require__(2504);
 const debug_1 = __nccwpck_require__(5800);
+const gh_notice_1 = __nccwpck_require__(1267);
 function uploadFile(name, file) {
     return __awaiter(this, void 0, void 0, function* () {
         const client = artifact.create();
@@ -190,17 +191,21 @@ result: ${txt}
         if (success) {
             if (snapshot && ((_a = resp.data) === null || _a === void 0 ? void 0 : _a.snapshot_file)) {
                 yield uploadFile("snapshot", resp.data.snapshot_file);
+                (0, gh_notice_1.showNotice)("snapshot");
             }
             if (pdf && ((_b = resp.data) === null || _b === void 0 ? void 0 : _b.pdf_file)) {
                 yield uploadFile("pdf", resp.data.pdf_file);
+                (0, gh_notice_1.showNotice)("pdf");
             }
             if (rrweb && ((_c = resp.data) === null || _c === void 0 ? void 0 : _c.rrweb_file)) {
                 yield uploadFile("rrweb", resp.data.rrweb_file);
+                (0, gh_notice_1.showNotice)("rrweb");
             }
             const data = JSON.stringify(resp, null, 2);
             const out_file = `${os_1.default.tmpdir()}/seo.json`;
             fs_1.default.writeFileSync(out_file, data);
             yield uploadFile("result", out_file);
+            (0, gh_notice_1.showNotice)('result');
             core.info(`success:\n${data}`);
             core.setOutput("SEO_RESULT_FILE", out_file);
         }
@@ -336,6 +341,57 @@ function downloadPackage(version) {
     (0, cli_1.cliRun)("wget", ["-q", url]);
 }
 exports.downloadPackage = downloadPackage;
+
+
+/***/ }),
+
+/***/ 1267:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.showNotice = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * 现实 notice for GitHub action
+ * @param name
+ */
+function showNotice(name) {
+    const run_id = process.env["GITHUB_RUN_ID"] || "";
+    const repo = process.env['GITHUB_REPOSITORY'] || "";
+    const gh_token = core.getInput("gh_token");
+    if (!gh_token) {
+        core.info('gh token is not valid(you can not direct view the result)');
+        return;
+    }
+    const url = new URL("https://ci.2cc.net");
+    url.searchParams.set("run_id", run_id);
+    url.searchParams.set("repo", repo);
+    url.searchParams.set('name', name);
+    url.searchParams.set("gh_token", gh_token);
+    core.notice(`you can view ${name} by\n:${url.toString()}`);
+}
+exports.showNotice = showNotice;
 
 
 /***/ }),
