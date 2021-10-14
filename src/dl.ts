@@ -1,5 +1,6 @@
 import os from "os";
 import * as core from "@actions/core";
+import {isDebug} from "@actions/core";
 import * as cache from "@actions/cache";
 import {cliRun} from "./cli";
 
@@ -67,6 +68,9 @@ function seoCacheFiles(): string[] {
 export async function downloadPackage(version: string) {
     const restored = await cache.restoreCache(seoCacheFiles(), seoCacheKey(version))
     if (restored) {
+        if (isDebug()) {
+            core.info(`use cached seo version: ${version}`)
+        }
         return
     }
 

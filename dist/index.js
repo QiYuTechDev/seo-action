@@ -302,6 +302,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.downloadPackage = exports.getDownloadUrl = exports.getDownloadFile = void 0;
 const os_1 = __importDefault(__nccwpck_require__(2087));
 const core = __importStar(__nccwpck_require__(2186));
+const core_1 = __nccwpck_require__(2186);
 const cache = __importStar(__nccwpck_require__(7799));
 const cli_1 = __nccwpck_require__(2504);
 /**
@@ -362,6 +363,9 @@ function downloadPackage(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const restored = yield cache.restoreCache(seoCacheFiles(), seoCacheKey(version));
         if (restored) {
+            if ((0, core_1.isDebug)()) {
+                core.info(`use cached seo version: ${version}`);
+            }
             return;
         }
         const url = getDownloadUrl(version);
