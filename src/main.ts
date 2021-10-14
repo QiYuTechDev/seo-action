@@ -8,12 +8,12 @@ import {runCode} from "./code";
 globalThis.fetch = fetch as any
 
 
-function main(): void {
+async function main(): Promise<void> {
     try {
         const version: string = core.getInput("version")
 
         core.info(`use seo version: ${version}`)
-        downloadPackage(version)
+        await downloadPackage(version)
         installPackage()
         runSeo()
         setTimeout(async () => {
@@ -25,4 +25,6 @@ function main(): void {
     }
 }
 
-main()
+main().then(() => {
+    console.info('done')
+})

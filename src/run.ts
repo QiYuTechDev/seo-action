@@ -5,6 +5,7 @@ import {debugMode} from "./debug";
 
 function runLinux() {
     core.info("install mongodb")
+    cliRun("sudo", ["apt", "install", "-q", "wget"])
     cliRun("wget", ["-qq", "https://repo.mongodb.org/apt/ubuntu/dists/focal/mongodb-org/5.0/multiverse/binary-amd64/mongodb-org-server_5.0.3_amd64.deb"])
     cliRun("sudo", ["dpkg", "-i", "mongodb-org-server_5.0.3_amd64.deb"])
     cliRun("sudo", ["mongod", "--fork", "--port=27019", "-f", "/etc/mongod.conf"])
