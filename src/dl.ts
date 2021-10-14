@@ -1,5 +1,6 @@
 import os from "os";
 import * as core from "@actions/core";
+import * as cache from "@actions/cache";
 import {cliRun} from "./cli";
 
 
@@ -50,8 +51,24 @@ function installWgetIfNeeded() {
     }
 }
 
+/**
+ * seo 缓存的 key
+ */
+function seoCacheKey(): string {
+    return `seo-${getDownloadFile()}`
+}
 
-export function downloadPackage(version: string) {
+function seoCacheFiles(): string[] {
+    return [getDownloadFile() as string]
+}
+
+
+export async function downloadPackage(version: string) {
+    const restored = await cache.restoreCache(seoCacheFiles(), seoCacheKey())
+    if (restored) {
+        return
+    }
+
     const url = getDownloadUrl(version)
     if (!url) {
         core.setFailed('not supported platform[only support windows linux and macOS]')
@@ -61,4 +78,7 @@ export function downloadPackage(version: string) {
     core.info('start download: ' + url)
     installWgetIfNeeded()
     cliRun("wget", ["-q", url])
+
+    const cache_id = await cache.saveCache(seoCacheFiles(), seoCacheKey())
+    core.info(`seo cache id:${cache_id}`)
 }
