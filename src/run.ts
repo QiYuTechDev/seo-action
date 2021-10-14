@@ -18,9 +18,10 @@ function runLinux() {
 }
 
 function runMacOS() {
-    core.info("install mongodb")
-    cliRun("brew", ["tap", "mongodb/brew"])
-    cliRun("brew", ["install", "mongodb-community@5.0"])
+    // it seems mongodb on macOS is already installed
+    // core.info("install mongodb")
+    // cliRun("brew", ["tap", "mongodb/brew"])
+    // cliRun("brew", ["install", "mongodb-community@5.0"])
     core.info("start mongodb")
     cliRun("brew", ["services", "start", "mongodb-community"])
     core.info("start seo")

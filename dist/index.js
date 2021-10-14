@@ -622,9 +622,10 @@ function runLinux() {
     (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"]);
 }
 function runMacOS() {
-    core.info("install mongodb");
-    (0, cli_1.cliRun)("brew", ["tap", "mongodb/brew"]);
-    (0, cli_1.cliRun)("brew", ["install", "mongodb-community@5.0"]);
+    // it seems mongodb on macOS is already installed
+    // core.info("install mongodb")
+    // cliRun("brew", ["tap", "mongodb/brew"])
+    // cliRun("brew", ["install", "mongodb-community@5.0"])
     core.info("start mongodb");
     (0, cli_1.cliRun)("brew", ["services", "start", "mongodb-community"]);
     core.info("start seo");
