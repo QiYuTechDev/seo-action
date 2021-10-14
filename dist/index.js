@@ -350,16 +350,17 @@ function installWgetIfNeeded() {
 }
 /**
  * seo 缓存的 key
+ * @param version 版本
  */
-function seoCacheKey() {
-    return `seo-${getDownloadFile()}`;
+function seoCacheKey(version) {
+    return `seo-${version}-${getDownloadFile()}`;
 }
 function seoCacheFiles() {
     return [getDownloadFile()];
 }
 function downloadPackage(version) {
     return __awaiter(this, void 0, void 0, function* () {
-        const restored = yield cache.restoreCache(seoCacheFiles(), seoCacheKey());
+        const restored = yield cache.restoreCache(seoCacheFiles(), seoCacheKey(version));
         if (restored) {
             return;
         }
@@ -371,7 +372,7 @@ function downloadPackage(version) {
         core.info('start download: ' + url);
         installWgetIfNeeded();
         (0, cli_1.cliRun)("wget", ["-q", url]);
-        const cache_id = yield cache.saveCache(seoCacheFiles(), seoCacheKey());
+        const cache_id = yield cache.saveCache(seoCacheFiles(), seoCacheKey(version));
         core.info(`seo cache id:${cache_id}`);
     });
 }

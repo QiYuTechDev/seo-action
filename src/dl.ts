@@ -53,9 +53,10 @@ function installWgetIfNeeded() {
 
 /**
  * seo 缓存的 key
+ * @param version 版本
  */
-function seoCacheKey(): string {
-    return `seo-${getDownloadFile()}`
+function seoCacheKey(version: string): string {
+    return `seo-${version}-${getDownloadFile()}`
 }
 
 function seoCacheFiles(): string[] {
@@ -64,7 +65,7 @@ function seoCacheFiles(): string[] {
 
 
 export async function downloadPackage(version: string) {
-    const restored = await cache.restoreCache(seoCacheFiles(), seoCacheKey())
+    const restored = await cache.restoreCache(seoCacheFiles(), seoCacheKey(version))
     if (restored) {
         return
     }
@@ -79,6 +80,6 @@ export async function downloadPackage(version: string) {
     installWgetIfNeeded()
     cliRun("wget", ["-q", url])
 
-    const cache_id = await cache.saveCache(seoCacheFiles(), seoCacheKey())
+    const cache_id = await cache.saveCache(seoCacheFiles(), seoCacheKey(version))
     core.info(`seo cache id:${cache_id}`)
 }
