@@ -2,6 +2,7 @@
 
 # ignore lock file
 package-lock.json
+yarn.lock
 
 # Dependency directory
 node_modules
