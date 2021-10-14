@@ -12,10 +12,21 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
-      - run: |
-          npm install
-      - run: |
-          npm run all
+
+      - name: Cache Node Modules
+        id: npm-cache
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-${{ hashFiles('**/package.json') }}
+
+      - name: Install Package
+        if: steps.npm-cache.outputs.cache-hit != 'true'
+        run: npm install
+
+      - name: Run All Test
+        run:  npm run all
+
       - uses: ./
         with:
           version: "0.7.0"
