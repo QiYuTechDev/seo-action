@@ -214,7 +214,6 @@ result: ${txt}
             fs_1.default.writeFileSync(out_file, data);
             yield uploadFile("result", out_file);
             (0, gh_notice_1.showNotice)('result');
-            core.info(`success:\n${data}`);
             core.setOutput("SEO_RESULT_FILE", out_file);
         }
     });
@@ -420,18 +419,16 @@ function showNotice(name) {
     const run_id = process.env["GITHUB_RUN_ID"] || "";
     const repo = process.env['GITHUB_REPOSITORY'] || "";
     const gh_token = core.getInput("gh_token") || "demo";
-    let url;
-    // this should be fixed
-    if (name === 'rrweb') {
-        url = new URL("https://ci.2cc.net/v1/rrweb.html");
-    }
-    else {
-        url = new URL("https://ci.2cc.net/v1/rrweb.html");
-    }
+    const m = {
+        'snapshot': "https://ci.2cc.net/v1/snaphot.html",
+        'pdf': 'https://ci.2cc.net/v1/pdf.html',
+        'rrweb': 'https://ci.2cc.net/v1/rrweb.html',
+        'result': 'https://ci.2cc.net/v1/json.html',
+    };
+    const url = new URL(m[name] || 'https://ci.2cc.net/');
     url.searchParams.set("run_id", run_id);
     url.searchParams.set("repo", repo);
     url.searchParams.set('name', name);
-    url.searchParams.set('gh_token', gh_token);
     if (gh_token) {
         url.searchParams.set("gh_token", gh_token);
     }
