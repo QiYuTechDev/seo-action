@@ -81,7 +81,6 @@ result: ${txt}
         fs.writeFileSync(out_file, data)
         await uploadFile("result", out_file)
         showNotice('result')
-        core.info(`success:\n${data}`)
         core.setOutput("SEO_RESULT_FILE", out_file)
     }
 }
