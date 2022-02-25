@@ -22,7 +22,7 @@ jobs:
 
       - name: Install Package
         if: steps.npm-cache.outputs.cache-hit != 'true'
-        run: npm install
+        run: rm -rf node_modules && npm install
 
       - name: Run All Test
         run:  npm run all
