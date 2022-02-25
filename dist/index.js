@@ -9,665 +9,6 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 
 /***/ }),
 
-/***/ 2504:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.cliRun = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-const process_1 = __importDefault(__nccwpck_require__(1765));
-const child_process = __importStar(__nccwpck_require__(3129));
-const debug_1 = __nccwpck_require__(5800);
-/**
- * 运行 cli 命令
- * @param cli
- * @param args
- * @param sync
- * @param allow_fail
- */
-function cliRun(cli, args = null, sync = true, allow_fail = false) {
-    let shell = undefined;
-    if (cli === "xpra") {
-        shell = true;
-    }
-    core.info(`${cli} ${(args || []).join(" ")}`);
-    if (!sync) {
-        const stdout = [];
-        const stderr = [];
-        const ret = child_process.spawn(cli, args || [], { detached: true, shell: shell });
-        ret.stdout.on('data', (data) => {
-            stdout.push(data);
-        });
-        ret.stderr.on('data', (data) => {
-            stderr.push(data);
-        });
-        process_1.default.on('beforeExit', () => {
-            core.info(`${cli} stdout:`);
-            for (const s of stdout) {
-                core.info(s);
-            }
-            core.info(`${cli} stderr:`);
-            for (const s of stderr) {
-                core.warning(s);
-            }
-        });
-        return;
-    }
-    let ret = child_process.spawnSync(cli, args || [], { shell: shell });
-    if (ret.status !== 0) {
-        if ((0, debug_1.debugMode)()) {
-            core.info(`${cli} stdout: ${ret.stdout}`);
-            core.warning(`${cli} stderr: ${ret.stderr}`);
-        }
-        if (allow_fail) {
-            core.info(`exec ${cli} ${JSON.stringify(args)} failed`);
-        }
-        else {
-            core.setFailed(`exec ${cli} ${JSON.stringify(args)} failed`);
-        }
-    }
-    else {
-        if ((0, debug_1.debugMode)()) {
-            core.info(ret.stdout.toString());
-            core.warning(ret.stderr.toString());
-        }
-    }
-}
-exports.cliRun = cliRun;
-
-
-/***/ }),
-
-/***/ 311:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.runCode = void 0;
-const fs_1 = __importDefault(__nccwpck_require__(5747));
-const path_1 = __importDefault(__nccwpck_require__(5622));
-const os_1 = __importDefault(__nccwpck_require__(2087));
-const core = __importStar(__nccwpck_require__(2186));
-const artifact = __importStar(__nccwpck_require__(2605));
-const qiyu_seo_1 = __nccwpck_require__(6243);
-const cli_1 = __nccwpck_require__(2504);
-const debug_1 = __nccwpck_require__(5800);
-const gh_notice_1 = __nccwpck_require__(1267);
-function uploadFile(name, file) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const client = artifact.create();
-        yield client.uploadArtifact(name, [file], path_1.default.dirname(file), { continueOnError: true });
-    });
-}
-/**
- * 运行 custom 代码
- */
-function runCode() {
-    var _a, _b, _c;
-    return __awaiter(this, void 0, void 0, function* () {
-        const url = core.getInput("url");
-        const code_file = core.getInput("code");
-        const snapshot = core.getBooleanInput("snapshot");
-        const pdf = core.getBooleanInput("pdf");
-        const video = core.getBooleanInput("video");
-        const rrweb = core.getBooleanInput("rrweb");
-        const timeout = Number(core.getInput("timeout"));
-        const code = fs_1.default.readFileSync(`${process.env['GITHUB_WORKSPACE']}/${code_file}`, { encoding: 'utf-8' });
-        core.info(`try to visit url: ${url}`);
-        core.info(`js code:\n${code}\n\n`);
-        const args = {
-            url: url,
-            fn_code: code,
-            timeout: timeout,
-            auto_close: true,
-            snapshot: snapshot,
-            pdf: pdf,
-            video: video,
-            rrweb: rrweb,
-        };
-        const bearer = process.env['SEO_REST_API_BEARER'] || 'seo';
-        if ((0, debug_1.debugMode)() && os_1.default.platform() === 'linux') {
-            (0, cli_1.cliRun)("sudo", ["netstat", "-plnt"]);
-        }
-        let success = true;
-        const resp = yield qiyu_seo_1.Ci.do_post({ body: args, security: { bearer } }, (resp) => __awaiter(this, void 0, void 0, function* () {
-            return yield resp.json();
-        }), (resp) => __awaiter(this, void 0, void 0, function* () {
-            const txt = yield resp.text();
-            success = false;
-            core.setFailed(`失败:
-http code: ${resp.status} 
-result: ${txt}
-`);
-        }));
-        if (success) {
-            if (snapshot && ((_a = resp.data) === null || _a === void 0 ? void 0 : _a.snapshot_file)) {
-                yield uploadFile("snapshot", resp.data.snapshot_file);
-                (0, gh_notice_1.showNotice)("snapshot");
-            }
-            if (pdf && ((_b = resp.data) === null || _b === void 0 ? void 0 : _b.pdf_file)) {
-                yield uploadFile("pdf", resp.data.pdf_file);
-                (0, gh_notice_1.showNotice)("pdf");
-            }
-            if (rrweb && ((_c = resp.data) === null || _c === void 0 ? void 0 : _c.rrweb_file)) {
-                yield uploadFile("rrweb", resp.data.rrweb_file);
-                (0, gh_notice_1.showNotice)("rrweb");
-            }
-            const data = JSON.stringify(resp, null, 2);
-            const out_file = `${os_1.default.tmpdir()}/seo.json`;
-            fs_1.default.writeFileSync(out_file, data);
-            yield uploadFile("result", out_file);
-            (0, gh_notice_1.showNotice)('result');
-            core.setOutput("SEO_RESULT_FILE", out_file);
-        }
-    });
-}
-exports.runCode = runCode;
-
-
-/***/ }),
-
-/***/ 5800:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.debugMode = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-/**
- * 调试模式
- */
-function debugMode() {
-    return core.getBooleanInput("debug") || false;
-}
-exports.debugMode = debugMode;
-
-
-/***/ }),
-
-/***/ 4657:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.downloadPackage = exports.getDownloadUrl = exports.getDownloadFile = void 0;
-const os_1 = __importDefault(__nccwpck_require__(2087));
-const core = __importStar(__nccwpck_require__(2186));
-const core_1 = __nccwpck_require__(2186);
-const cache = __importStar(__nccwpck_require__(7799));
-const cli_1 = __nccwpck_require__(2504);
-/**
- * 获取下载的文件名
- */
-function getDownloadFile() {
-    switch (os_1.default.platform()) {
-        case 'linux':
-            return `seo_amd64.deb`;
-        case 'darwin':
-            return `mac.zip`;
-        case 'win32':
-            return `seo_setup.exe`;
-        default:
-            core.setFailed(`${os_1.default.platform()} is not supported[only support linux[debian&ubuntu] & macOS, win32]`);
-            return null;
-    }
-}
-exports.getDownloadFile = getDownloadFile;
-/**
- * 获取安装包下载的 URL
- * @param version
- */
-function getDownloadUrl(version) {
-    const prefix = 'https://github.com/QiYuTechDev/seo/releases/download';
-    switch (os_1.default.platform()) {
-        case 'linux':
-            return `${prefix}/${version}/${getDownloadFile()}`;
-        case 'darwin':
-            return `${prefix}/${version}/${getDownloadFile()}`;
-        case 'win32':
-            return `${prefix}/${version}/${getDownloadFile()}`;
-        default:
-            return null;
-    }
-}
-exports.getDownloadUrl = getDownloadUrl;
-/**
- * windows not have wget cli
- */
-function installWgetIfNeeded() {
-    if (os_1.default.platform() === 'win32') {
-        core.info("install wget for windows");
-        (0, cli_1.cliRun)("choco", ["install", "--no-progress", "wget"]);
-    }
-}
-/**
- * seo 缓存的 key
- * @param version 版本
- */
-function seoCacheKey(version) {
-    return `seo-${version}-${getDownloadFile()}`;
-}
-function seoCacheFiles() {
-    return [getDownloadFile()];
-}
-function downloadPackage(version) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const restored = yield cache.restoreCache(seoCacheFiles(), seoCacheKey(version));
-        if (restored) {
-            if ((0, core_1.isDebug)()) {
-                core.info(`use cached seo version: ${version}`);
-            }
-            return;
-        }
-        const url = getDownloadUrl(version);
-        if (!url) {
-            core.setFailed('not supported platform[only support windows linux and macOS]');
-            return;
-        }
-        core.info('start download: ' + url);
-        installWgetIfNeeded();
-        (0, cli_1.cliRun)("wget", ["-q", url]);
-        const cache_id = yield cache.saveCache(seoCacheFiles(), seoCacheKey(version));
-        core.info(`seo cache id:${cache_id}`);
-    });
-}
-exports.downloadPackage = downloadPackage;
-
-
-/***/ }),
-
-/***/ 1267:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.showNotice = void 0;
-const core = __importStar(__nccwpck_require__(2186));
-/**
- * 现实 notice for GitHub action
- * @param name
- */
-function showNotice(name) {
-    const run_id = process.env["GITHUB_RUN_ID"] || "";
-    const repo = process.env['GITHUB_REPOSITORY'] || "";
-    const gh_token = core.getInput("gh_token") || "demo";
-    const m = {
-        'snapshot': "https://ci.2cc.net/v1/snaphot.html",
-        'pdf': 'https://ci.2cc.net/v1/pdf.html',
-        'rrweb': 'https://ci.2cc.net/v1/rrweb.html',
-        'result': 'https://ci.2cc.net/v1/json.html',
-    };
-    const url = new URL(m[name] || 'https://ci.2cc.net/');
-    url.searchParams.set("run_id", run_id);
-    url.searchParams.set("repo", repo);
-    url.searchParams.set('name', name);
-    if (gh_token) {
-        url.searchParams.set("gh_token", gh_token);
-    }
-    core.notice(`you can view ${name} by: ${url.toString()}`);
-}
-exports.showNotice = showNotice;
-
-
-/***/ }),
-
-/***/ 9039:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.installPackage = void 0;
-const os_1 = __importDefault(__nccwpck_require__(2087));
-const core = __importStar(__nccwpck_require__(2186));
-const dl_1 = __nccwpck_require__(4657);
-const cli_1 = __nccwpck_require__(2504);
-function installPackage() {
-    const file = (0, dl_1.getDownloadFile)();
-    if (!file) {
-        return;
-    }
-    core.info('start install:' + file);
-    switch (os_1.default.platform()) {
-        case "win32":
-            // https://github.com/Squirrel/Squirrel.Windows/pull/187
-            (0, cli_1.cliRun)(file, ["-s"]);
-            break;
-        case 'linux':
-            (0, cli_1.cliRun)("sudo", ["apt", "update"]);
-            (0, cli_1.cliRun)("sudo", ["dpkg", "-i", file]);
-            (0, cli_1.cliRun)("sudo", ["apt", "--fix-broken", "-y", "install"]);
-            (0, cli_1.cliRun)("sudo", ["snap", "install", "chromium-ffmpeg"]);
-            (0, cli_1.cliRun)("sudo", ["ln", "-s", "/snap/chromium-ffmpeg/current/chromium-ffmpeg-104195/chromium-ffmpeg/libffmpeg.so", "/usr/lib/x86_64-linux-gnu/libffmpeg.so"]);
-            (0, cli_1.cliRun)("sudo", ["apt", "install", "-qq", "-y", "xpra", "dbus-x11"]);
-            (0, cli_1.cliRun)("pip3", ["install", "--user", "xpra"]);
-            break;
-        case 'darwin':
-            (0, cli_1.cliRun)("unzip", ["-qq", file]);
-            break;
-        default:
-            core.setFailed(`${os_1.default.platform()} is not supported[only support linux[debian&ubuntu] & macOS, win32]`);
-            return;
-    }
-}
-exports.installPackage = installPackage;
-
-
-/***/ }),
-
-/***/ 3109:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2186));
-const node_fetch_1 = __importDefault(__nccwpck_require__(6882));
-const dl_1 = __nccwpck_require__(4657);
-const install_1 = __nccwpck_require__(9039);
-const run_1 = __nccwpck_require__(7884);
-const code_1 = __nccwpck_require__(311);
-globalThis.fetch = node_fetch_1.default;
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const version = core.getInput("version");
-            core.info(`use seo version: ${version}`);
-            yield (0, dl_1.downloadPackage)(version);
-            (0, install_1.installPackage)();
-            (0, run_1.runSeo)();
-            setTimeout(() => __awaiter(this, void 0, void 0, function* () {
-                yield (0, code_1.runCode)();
-                process.exit(0);
-            }), 10 * 1000); // wait seo startup
-        }
-        catch (error) {
-            core.setFailed(error.message);
-        }
-    });
-}
-main().then(() => {
-    console.info('done');
-});
-
-
-/***/ }),
-
-/***/ 7884:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.runSeo = void 0;
-const os_1 = __importDefault(__nccwpck_require__(2087));
-const core = __importStar(__nccwpck_require__(2186));
-const cli_1 = __nccwpck_require__(2504);
-const debug_1 = __nccwpck_require__(5800);
-function runLinux() {
-    core.info("install mongodb");
-    (0, cli_1.cliRun)("sudo", ["apt", "install", "-q", "wget"]);
-    (0, cli_1.cliRun)("wget", ["-qq", "https://repo.mongodb.org/apt/ubuntu/dists/focal/mongodb-org/5.0/multiverse/binary-amd64/mongodb-org-server_5.0.3_amd64.deb"]);
-    (0, cli_1.cliRun)("sudo", ["dpkg", "-i", "mongodb-org-server_5.0.3_amd64.deb"]);
-    (0, cli_1.cliRun)("sudo", ["mongod", "--fork", "--port=27019", "-f", "/etc/mongod.conf"]);
-    core.info("xpra env info");
-    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"env\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true);
-    core.info("test mongodb connection");
-    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019 --test-mongo-server\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true);
-    core.info("start seo in background");
-    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"]);
-}
-function runMacOS() {
-    // it seems mongodb on macOS is already installed
-    // core.info("install mongodb")
-    // cliRun("brew", ["tap", "mongodb/brew"])
-    // cliRun("brew", ["install", "mongodb-community@5.0"])
-    core.info("start mongodb");
-    (0, cli_1.cliRun)("brew", ["services", "start", "mongodb-community"]);
-    core.info("start seo");
-    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"]);
-    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--mongo-url=mongodb://127.0.0.1:27019"], false);
-}
-function runWin32() {
-    if ((0, debug_1.debugMode)()) {
-        core.info("debug info");
-        (0, cli_1.cliRun)("whoami");
-        (0, cli_1.cliRun)("ls", ["c:\\\\users\\\\runneradmin\\\\AppData\\\\Local\\\\seo"]);
-    }
-    core.info("install mongodb");
-    (0, cli_1.cliRun)("choco", ["install", "mongodb"]);
-    core.info("show all windows services");
-    core.info("test mongodb connection");
-    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"]);
-    core.info("start seo");
-    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--mongo-url=mongodb://127.0.0.1:27019"], false);
-}
-function runSeo() {
-    process.env["SEO_REST_API_ENABLE"] = "1";
-    process.env['SEO_REST_API_HOST'] = "127.0.0.1";
-    process.env['SEO_REST_API_PORT'] = "18082";
-    switch (os_1.default.platform()) {
-        case "linux":
-            runLinux();
-            break;
-        case "win32":
-            runWin32();
-            break;
-        case "darwin":
-            runMacOS();
-            break;
-        default:
-            break;
-    }
-}
-exports.runSeo = runSeo;
-
-
-/***/ }),
-
 /***/ 2605:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -69612,6 +68953,665 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6733:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.cliRun = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const process_1 = __importDefault(__nccwpck_require__(1765));
+const child_process = __importStar(__nccwpck_require__(3129));
+const debug_1 = __nccwpck_require__(1417);
+/**
+ * 运行 cli 命令
+ * @param cli
+ * @param args
+ * @param sync
+ * @param allow_fail
+ */
+function cliRun(cli, args = null, sync = true, allow_fail = false) {
+    let shell = undefined;
+    if (cli === "xpra") {
+        shell = true;
+    }
+    core.info(`${cli} ${(args || []).join(" ")}`);
+    if (!sync) {
+        const stdout = [];
+        const stderr = [];
+        const ret = child_process.spawn(cli, args || [], { detached: true, shell: shell });
+        ret.stdout.on('data', (data) => {
+            stdout.push(data);
+        });
+        ret.stderr.on('data', (data) => {
+            stderr.push(data);
+        });
+        process_1.default.on('beforeExit', () => {
+            core.info(`${cli} stdout:`);
+            for (const s of stdout) {
+                core.info(s);
+            }
+            core.info(`${cli} stderr:`);
+            for (const s of stderr) {
+                core.warning(s);
+            }
+        });
+        return;
+    }
+    let ret = child_process.spawnSync(cli, args || [], { shell: shell });
+    if (ret.status !== 0) {
+        if ((0, debug_1.debugMode)()) {
+            core.info(`${cli} stdout: ${ret.stdout}`);
+            core.warning(`${cli} stderr: ${ret.stderr}`);
+        }
+        if (allow_fail) {
+            core.info(`exec ${cli} ${JSON.stringify(args)} failed`);
+        }
+        else {
+            core.setFailed(`exec ${cli} ${JSON.stringify(args)} failed`);
+        }
+    }
+    else {
+        if ((0, debug_1.debugMode)()) {
+            core.info(ret.stdout.toString());
+            core.warning(ret.stderr.toString());
+        }
+    }
+}
+exports.cliRun = cliRun;
+
+
+/***/ }),
+
+/***/ 724:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.runCode = void 0;
+const fs_1 = __importDefault(__nccwpck_require__(5747));
+const path_1 = __importDefault(__nccwpck_require__(5622));
+const os_1 = __importDefault(__nccwpck_require__(2087));
+const core = __importStar(__nccwpck_require__(2186));
+const artifact = __importStar(__nccwpck_require__(2605));
+const qiyu_seo_1 = __nccwpck_require__(6243);
+const cli_1 = __nccwpck_require__(6733);
+const debug_1 = __nccwpck_require__(1417);
+const gh_notice_1 = __nccwpck_require__(6287);
+function uploadFile(name, file) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const client = artifact.create();
+        yield client.uploadArtifact(name, [file], path_1.default.dirname(file), { continueOnError: true });
+    });
+}
+/**
+ * 运行 custom 代码
+ */
+function runCode() {
+    var _a, _b, _c;
+    return __awaiter(this, void 0, void 0, function* () {
+        const url = core.getInput("url");
+        const code_file = core.getInput("code");
+        const snapshot = core.getBooleanInput("snapshot");
+        const pdf = core.getBooleanInput("pdf");
+        const video = core.getBooleanInput("video");
+        const rrweb = core.getBooleanInput("rrweb");
+        const timeout = Number(core.getInput("timeout"));
+        const code = fs_1.default.readFileSync(`${process.env['GITHUB_WORKSPACE']}/${code_file}`, { encoding: 'utf-8' });
+        core.info(`try to visit url: ${url}`);
+        core.info(`js code:\n${code}\n\n`);
+        const args = {
+            url: url,
+            fn_code: code,
+            timeout: timeout,
+            auto_close: true,
+            snapshot: snapshot,
+            pdf: pdf,
+            video: video,
+            rrweb: rrweb,
+        };
+        const bearer = process.env['SEO_REST_API_BEARER'] || 'seo';
+        if ((0, debug_1.debugMode)() && os_1.default.platform() === 'linux') {
+            (0, cli_1.cliRun)("sudo", ["netstat", "-plnt"]);
+        }
+        let success = true;
+        const resp = yield qiyu_seo_1.Ci.do_post({ body: args, security: { bearer } }, (resp) => __awaiter(this, void 0, void 0, function* () {
+            return yield resp.json();
+        }), (resp) => __awaiter(this, void 0, void 0, function* () {
+            const txt = yield resp.text();
+            success = false;
+            core.setFailed(`失败:
+http code: ${resp.status} 
+result: ${txt}
+`);
+        }));
+        if (success) {
+            if (snapshot && ((_a = resp.data) === null || _a === void 0 ? void 0 : _a.snapshot_file)) {
+                yield uploadFile("snapshot", resp.data.snapshot_file);
+                (0, gh_notice_1.showNotice)("snapshot");
+            }
+            if (pdf && ((_b = resp.data) === null || _b === void 0 ? void 0 : _b.pdf_file)) {
+                yield uploadFile("pdf", resp.data.pdf_file);
+                (0, gh_notice_1.showNotice)("pdf");
+            }
+            if (rrweb && ((_c = resp.data) === null || _c === void 0 ? void 0 : _c.rrweb_file)) {
+                yield uploadFile("rrweb", resp.data.rrweb_file);
+                (0, gh_notice_1.showNotice)("rrweb");
+            }
+            const data = JSON.stringify(resp, null, 2);
+            const out_file = `${os_1.default.tmpdir()}/seo.json`;
+            fs_1.default.writeFileSync(out_file, data);
+            yield uploadFile("result", out_file);
+            (0, gh_notice_1.showNotice)('result');
+            core.setOutput("SEO_RESULT_FILE", out_file);
+        }
+    });
+}
+exports.runCode = runCode;
+
+
+/***/ }),
+
+/***/ 1417:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.debugMode = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * 调试模式
+ */
+function debugMode() {
+    return core.getBooleanInput("debug") || false;
+}
+exports.debugMode = debugMode;
+
+
+/***/ }),
+
+/***/ 2205:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.downloadPackage = exports.getDownloadUrl = exports.getDownloadFile = void 0;
+const os_1 = __importDefault(__nccwpck_require__(2087));
+const core = __importStar(__nccwpck_require__(2186));
+const core_1 = __nccwpck_require__(2186);
+const cache = __importStar(__nccwpck_require__(7799));
+const cli_1 = __nccwpck_require__(6733);
+/**
+ * 获取下载的文件名
+ */
+function getDownloadFile() {
+    switch (os_1.default.platform()) {
+        case 'linux':
+            return `seo_amd64.deb`;
+        case 'darwin':
+            return `mac.zip`;
+        case 'win32':
+            return `seo_setup.exe`;
+        default:
+            core.setFailed(`${os_1.default.platform()} is not supported[only support linux[debian&ubuntu] & macOS, win32]`);
+            return null;
+    }
+}
+exports.getDownloadFile = getDownloadFile;
+/**
+ * 获取安装包下载的 URL
+ * @param version
+ */
+function getDownloadUrl(version) {
+    const prefix = 'https://github.com/QiYuTechDev/seo/releases/download';
+    switch (os_1.default.platform()) {
+        case 'linux':
+            return `${prefix}/${version}/${getDownloadFile()}`;
+        case 'darwin':
+            return `${prefix}/${version}/${getDownloadFile()}`;
+        case 'win32':
+            return `${prefix}/${version}/${getDownloadFile()}`;
+        default:
+            return null;
+    }
+}
+exports.getDownloadUrl = getDownloadUrl;
+/**
+ * windows not have wget cli
+ */
+function installWgetIfNeeded() {
+    if (os_1.default.platform() === 'win32') {
+        core.info("install wget for windows");
+        (0, cli_1.cliRun)("choco", ["install", "--no-progress", "wget"]);
+    }
+}
+/**
+ * seo 缓存的 key
+ * @param version 版本
+ */
+function seoCacheKey(version) {
+    return `seo-${version}-${getDownloadFile()}`;
+}
+function seoCacheFiles() {
+    return [getDownloadFile()];
+}
+function downloadPackage(version) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const restored = yield cache.restoreCache(seoCacheFiles(), seoCacheKey(version));
+        if (restored) {
+            if ((0, core_1.isDebug)()) {
+                core.info(`use cached seo version: ${version}`);
+            }
+            return;
+        }
+        const url = getDownloadUrl(version);
+        if (!url) {
+            core.setFailed('not supported platform[only support windows linux and macOS]');
+            return;
+        }
+        core.info('start download: ' + url);
+        installWgetIfNeeded();
+        (0, cli_1.cliRun)("wget", ["-q", url]);
+        const cache_id = yield cache.saveCache(seoCacheFiles(), seoCacheKey(version));
+        core.info(`seo cache id:${cache_id}`);
+    });
+}
+exports.downloadPackage = downloadPackage;
+
+
+/***/ }),
+
+/***/ 6287:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.showNotice = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+/**
+ * 现实 notice for GitHub action
+ * @param name
+ */
+function showNotice(name) {
+    const run_id = process.env["GITHUB_RUN_ID"] || "";
+    const repo = process.env['GITHUB_REPOSITORY'] || "";
+    const gh_token = core.getInput("gh_token") || "demo";
+    const m = {
+        'snapshot': "https://ci.2cc.net/v1/snaphot.html",
+        'pdf': 'https://ci.2cc.net/v1/pdf.html',
+        'rrweb': 'https://ci.2cc.net/v1/rrweb.html',
+        'result': 'https://ci.2cc.net/v1/json.html',
+    };
+    const url = new URL(m[name] || 'https://ci.2cc.net/');
+    url.searchParams.set("run_id", run_id);
+    url.searchParams.set("repo", repo);
+    url.searchParams.set('name', name);
+    if (gh_token) {
+        url.searchParams.set("gh_token", gh_token);
+    }
+    core.notice(`you can view ${name} by: ${url.toString()}`);
+}
+exports.showNotice = showNotice;
+
+
+/***/ }),
+
+/***/ 1649:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.installPackage = void 0;
+const os_1 = __importDefault(__nccwpck_require__(2087));
+const core = __importStar(__nccwpck_require__(2186));
+const dl_1 = __nccwpck_require__(2205);
+const cli_1 = __nccwpck_require__(6733);
+function installPackage() {
+    const file = (0, dl_1.getDownloadFile)();
+    if (!file) {
+        return;
+    }
+    core.info('start install:' + file);
+    switch (os_1.default.platform()) {
+        case "win32":
+            // https://github.com/Squirrel/Squirrel.Windows/pull/187
+            (0, cli_1.cliRun)(file, ["-s"]);
+            break;
+        case 'linux':
+            (0, cli_1.cliRun)("sudo", ["apt", "update"]);
+            (0, cli_1.cliRun)("sudo", ["dpkg", "-i", file]);
+            (0, cli_1.cliRun)("sudo", ["apt", "--fix-broken", "-y", "install"]);
+            (0, cli_1.cliRun)("sudo", ["snap", "install", "chromium-ffmpeg"]);
+            (0, cli_1.cliRun)("sudo", ["ln", "-s", "/snap/chromium-ffmpeg/current/chromium-ffmpeg-104195/chromium-ffmpeg/libffmpeg.so", "/usr/lib/x86_64-linux-gnu/libffmpeg.so"]);
+            (0, cli_1.cliRun)("sudo", ["apt", "install", "-qq", "-y", "xpra", "dbus-x11"]);
+            (0, cli_1.cliRun)("pip3", ["install", "--user", "xpra"]);
+            break;
+        case 'darwin':
+            (0, cli_1.cliRun)("unzip", ["-qq", file]);
+            break;
+        default:
+            core.setFailed(`${os_1.default.platform()} is not supported[only support linux[debian&ubuntu] & macOS, win32]`);
+            return;
+    }
+}
+exports.installPackage = installPackage;
+
+
+/***/ }),
+
+/***/ 399:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const core = __importStar(__nccwpck_require__(2186));
+const node_fetch_1 = __importDefault(__nccwpck_require__(6882));
+const dl_1 = __nccwpck_require__(2205);
+const install_1 = __nccwpck_require__(1649);
+const run_1 = __nccwpck_require__(7764);
+const code_1 = __nccwpck_require__(724);
+globalThis.fetch = node_fetch_1.default;
+function main() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const version = core.getInput("version");
+            core.info(`use seo version: ${version}`);
+            yield (0, dl_1.downloadPackage)(version);
+            (0, install_1.installPackage)();
+            (0, run_1.runSeo)();
+            setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                yield (0, code_1.runCode)();
+                process.exit(0);
+            }), 10 * 1000); // wait seo startup
+        }
+        catch (error) {
+            core.setFailed(error.message);
+        }
+    });
+}
+main().then(() => {
+    console.info('done');
+});
+
+
+/***/ }),
+
+/***/ 7764:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.runSeo = void 0;
+const os_1 = __importDefault(__nccwpck_require__(2087));
+const core = __importStar(__nccwpck_require__(2186));
+const cli_1 = __nccwpck_require__(6733);
+const debug_1 = __nccwpck_require__(1417);
+function runLinux() {
+    core.info("install mongodb");
+    (0, cli_1.cliRun)("sudo", ["apt", "install", "-q", "wget"]);
+    (0, cli_1.cliRun)("wget", ["-qq", "https://repo.mongodb.org/apt/ubuntu/dists/focal/mongodb-org/5.0/multiverse/binary-amd64/mongodb-org-server_5.0.3_amd64.deb"]);
+    (0, cli_1.cliRun)("sudo", ["dpkg", "-i", "mongodb-org-server_5.0.3_amd64.deb"]);
+    (0, cli_1.cliRun)("sudo", ["mongod", "--fork", "--port=27019", "-f", "/etc/mongod.conf"]);
+    core.info("xpra env info");
+    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"env\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true);
+    core.info("test mongodb connection");
+    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019 --test-mongo-server\"", "--bind-tcp=127.0.0.1:28182", "--html=off", "--exit-with-children", "--daemon=off"], true, true);
+    core.info("start seo in background");
+    (0, cli_1.cliRun)("xpra", ["start", "--start-child=\"seo --mongo-url=mongodb://127.0.0.1:27019\"", "--bind-tcp=127.0.0.1:28182", "--html=on", "--exit-with-children", "--daemon=on"]);
+}
+function runMacOS() {
+    // it seems mongodb on macOS is already installed
+    // core.info("install mongodb")
+    // cliRun("brew", ["tap", "mongodb/brew"])
+    // cliRun("brew", ["install", "mongodb-community@5.0"])
+    core.info("start mongodb");
+    (0, cli_1.cliRun)("brew", ["services", "start", "mongodb-community"]);
+    core.info("start seo");
+    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"]);
+    (0, cli_1.cliRun)("./seo.app/Contents/MacOS/seo", ["--mongo-url=mongodb://127.0.0.1:27019"], false);
+}
+function runWin32() {
+    if ((0, debug_1.debugMode)()) {
+        core.info("debug info");
+        (0, cli_1.cliRun)("whoami");
+        (0, cli_1.cliRun)("ls", ["c:\\\\users\\\\runneradmin\\\\AppData\\\\Local\\\\seo"]);
+    }
+    core.info("install mongodb");
+    (0, cli_1.cliRun)("choco", ["install", "mongodb"]);
+    core.info("show all windows services");
+    core.info("test mongodb connection");
+    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--test-mongo-server", "--mongo-url=mongodb://127.0.0.1:27019"]);
+    core.info("start seo");
+    (0, cli_1.cliRun)("c:\\users\\runneradmin\\AppData\\Local\\seo\\seo.exe", ["--mongo-url=mongodb://127.0.0.1:27019"], false);
+}
+function runSeo() {
+    process.env["SEO_REST_API_ENABLE"] = "1";
+    process.env['SEO_REST_API_HOST'] = "127.0.0.1";
+    process.env['SEO_REST_API_PORT'] = "18082";
+    switch (os_1.default.platform()) {
+        case "linux":
+            runLinux();
+            break;
+        case "win32":
+            runWin32();
+            break;
+        case "darwin":
+            runMacOS();
+            break;
+        default:
+            break;
+    }
+}
+exports.runSeo = runSeo;
+
+
+/***/ }),
+
 /***/ 2877:
 /***/ ((module) => {
 
@@ -70032,7 +70032,7 @@ module.exports = require("zlib");
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(3109);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(399);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()
